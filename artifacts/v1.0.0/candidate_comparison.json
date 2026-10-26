@@ -1,0 +1,61 @@
+{
+  "selection_metric": "val_macro_f1",
+  "winning_candidate": "XGBoost",
+  "leaderboard": [
+    {
+      "candidate": "XGBoost",
+      "val_accuracy": 0.886,
+      "val_macro_f1": 0.8885,
+      "val_binary_f1": 0.8812,
+      "val_precision": 0.9196,
+      "val_recall": 0.846,
+      "val_roc_auc": 0.951,
+      "train_time_sec": 25.98,
+      "status": "SUCCESS"
+    },
+    {
+      "candidate": "LogisticRegression",
+      "val_accuracy": 0.856,
+      "val_macro_f1": 0.8564,
+      "val_binary_f1": 0.8537,
+      "val_precision": 0.8678,
+      "val_recall": 0.84,
+      "val_roc_auc": 0.9272,
+      "train_time_sec": 3.94,
+      "status": "SUCCESS"
+    },
+    {
+      "candidate": "ExtraTrees",
+      "val_accuracy": 0.848,
+      "val_macro_f1": 0.8512,
+      "val_binary_f1": 0.8403,
+      "val_precision": 0.885,
+      "val_recall": 0.8,
+      "val_roc_auc": 0.909,
+      "train_time_sec": 0.85,
+      "status": "SUCCESS"
+    },
+    {
+      "candidate": "MLPClassifier",
+      "val_accuracy": 0.847,
+      "val_macro_f1": 0.8483,
+      "val_binary_f1": 0.8421,
+      "val_precision": 0.8699,
+      "val_recall": 0.816,
+      "val_roc_auc": 0.9285,
+      "train_time_sec": 4.38,
+      "status": "SUCCESS"
+    },
+    {
+      "candidate": "RandomForest",
+      "val_accuracy": 0.829,
+      "val_macro_f1": 0.8336,
+      "val_binary_f1": 0.8183,
+      "val_precision": 0.873,
+      "val_recall": 0.77,
+      "val_roc_auc": 0.9155,
+      "train_time_sec": 1.6,
+      "status": "SUCCESS"
+    }
+  ]
+}

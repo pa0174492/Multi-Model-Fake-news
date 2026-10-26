@@ -1,0 +1,25 @@
+{
+  "model_version": "v1.0.0",
+  "timestamp_utc": "2026-10-09T21:32:05Z",
+  "winning_candidate": "XGBoost",
+  "test_macro_f1": 0.8517,
+  "test_roc_auc": 0.9256,
+  "test_accuracy": 0.852,
+  "total_features": 913,
+  "artifacts_packaged": [
+    "fusion_model.joblib",
+    "fusion_model.json",
+    "text_baseline.joblib",
+    "image_baseline.joblib",
+    "text_pca.joblib",
+    "vision_pca.joblib",
+    "feature_schema.json",
+    "preprocessing_config.json",
+    "metrics.json",
+    "candidate_comparison.json",
+    "data_profile.json",
+    "shap_summary.json",
+    "label_mapping.json",
+    "held_out_test_predictions.json"
+  ]
+}

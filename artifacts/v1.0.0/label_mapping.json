@@ -1,0 +1,29 @@
+{
+  "description": "Fakeddit official label mappings and task-compatible binary mapping for fake news detection",
+  "fakeddit_raw_2_way": {
+    "1": "True / Real content",
+    "0": "Fake / Misinformation"
+  },
+  "fakeddit_raw_3_way": {
+    "0": "True / Real content",
+    "1": "Completely Fabricated content",
+    "2": "Misleading or Manipulated content"
+  },
+  "fakeddit_raw_6_way": {
+    "0": "True",
+    "1": "Satire / Parody",
+    "2": "Misleading Content",
+    "3": "Manipulated Content",
+    "4": "False Connection",
+    "5": "Completely Fabricated / Imposter Content"
+  },
+  "canonical_task_mapping": {
+    "task_name": "Multimodal Fake News Detection",
+    "target_column": "is_fake",
+    "mapping_rule": "is_fake = 1 if fakeddit_2_way_label == 0 else 0",
+    "classes": {
+      "0": "Real News / Genuine",
+      "1": "Fake News / Misinformation"
+    }
+  }
+}

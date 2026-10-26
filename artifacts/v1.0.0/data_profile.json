@@ -1,0 +1,136 @@
+{
+  "dataset": "Fakeddit Multimodal Benchmark",
+  "splits": {
+    "train": {
+      "count": 5000,
+      "class_distribution": {
+        "1": 2500,
+        "0": 2500
+      },
+      "veracity_distribution": {
+        "Fake": 2500,
+        "Real": 2500
+      },
+      "fakeddit_6_way_distribution": {
+        "0": 2500,
+        "4": 1061,
+        "2": 862,
+        "1": 290,
+        "5": 180,
+        "3": 107
+      },
+      "file_path": "data/processed\\train_multimodal.csv"
+    },
+    "val": {
+      "count": 1000,
+      "class_distribution": {
+        "0": 500,
+        "1": 500
+      },
+      "veracity_distribution": {
+        "Real": 500,
+        "Fake": 500
+      },
+      "fakeddit_6_way_distribution": {
+        "0": 500,
+        "4": 203,
+        "2": 177,
+        "1": 62,
+        "5": 39,
+        "3": 19
+      },
+      "file_path": "data/processed\\val_multimodal.csv"
+    },
+    "test": {
+      "count": 1000,
+      "class_distribution": {
+        "1": 500,
+        "0": 500
+      },
+      "veracity_distribution": {
+        "Fake": 500,
+        "Real": 500
+      },
+      "fakeddit_6_way_distribution": {
+        "0": 500,
+        "4": 224,
+        "2": 159,
+        "1": 52,
+        "5": 44,
+        "3": 21
+      },
+      "file_path": "data/processed\\test_multimodal.csv"
+    }
+  },
+  "total_multimodal_samples": 7000,
+  "leakage_verification": {
+    "id_leakage": {
+      "train_val_overlap_count": 0,
+      "train_test_overlap_count": 0,
+      "val_test_overlap_count": 0
+    },
+    "text_duplicate_leakage": {
+      "train_val_duplicate_texts": 0,
+      "train_test_duplicate_texts": 0,
+      "val_test_duplicate_texts": 0
+    },
+    "clean_splits_verified": true
+  },
+  "exclusion_log": {
+    "train": {
+      "TEXT_TOO_SHORT_WORDS": 602,
+      "LEAKAGE_DUPLICATE_TEXT": 220,
+      "MISSING_IMAGE_URL": 30,
+      "TEXT_TOO_SHORT_CHARS": 145,
+      "IMAGE_FETCH_HTTP_404": 264,
+      "IMAGE_FETCH_URL_ERROR_TimeoutError": 28,
+      "IMAGE_FETCH_CORRUPT_TimeoutError": 43,
+      "IMAGE_FETCH_CORRUPT_UnidentifiedImageError": 2,
+      "IMAGE_FETCH_URL_ERROR_gaierror": 2,
+      "IMAGE_FETCH_HTTP_500": 1,
+      "IMAGE_FETCH_HTTP_530": 1,
+      "IMAGE_FETCH_HTTP_504": 1,
+      "IMAGE_FETCH_HTTP_410": 1
+    },
+    "val": {
+      "TEXT_TOO_SHORT_WORDS": 95,
+      "LEAKAGE_DUPLICATE_TEXT": 42,
+      "TEXT_TOO_SHORT_CHARS": 35,
+      "MISSING_IMAGE_URL": 6,
+      "IMAGE_FETCH_CORRUPT_TimeoutError": 10,
+      "IMAGE_FETCH_HTTP_404": 49,
+      "IMAGE_FETCH_URL_ERROR_TimeoutError": 7
+    },
+    "test": {
+      "TEXT_TOO_SHORT_WORDS": 119,
+      "MISSING_IMAGE_URL": 5,
+      "TEXT_TOO_SHORT_CHARS": 23,
+      "IMAGE_FETCH_HTTP_404": 67,
+      "IMAGE_FETCH_URL_ERROR_gaierror": 1,
+      "IMAGE_FETCH_URL_ERROR_TimeoutError": 4,
+      "IMAGE_FETCH_CORRUPT_UnidentifiedImageError": 1,
+      "IMAGE_FETCH_URL_ERROR_ConnectionRefusedError": 1,
+      "IMAGE_FETCH_HTTP_403": 1,
+      "IMAGE_FETCH_CORRUPT_TimeoutError": 8
+    }
+  },
+  "label_schema": {
+    "task": "Multimodal Fake News Detection",
+    "fakeddit_2_way_to_is_fake": {
+      "1": 0,
+      "0": 1
+    },
+    "canonical_classes": {
+      "0": "Real News",
+      "1": "Fake News"
+    },
+    "fakeddit_6_way_definitions": {
+      "0": "True",
+      "1": "Satire / Parody",
+      "2": "Misleading Content",
+      "3": "Manipulated Content",
+      "4": "False Connection",
+      "5": "Completely Fabricated"
+    }
+  }
+}

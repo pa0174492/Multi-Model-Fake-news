@@ -1,0 +1,2017 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Veritas | Multimodal Fake News & AI Media Forensic Suite</title>
+  <meta name="description"
+    content="Explainable Multimodal Fake News Detection, AI Media Forensics, Fakeddit Dataset Explorer, Real-Time Model Building, and MongoDB Intelligence Hub">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css?v=5.0">
+  <script>
+    (function () {
+      try {
+        var theme = localStorage.getItem('veritas_theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', theme);
+        if (theme === 'light') document.documentElement.classList.add('light-theme');
+      } catch (e) { }
+    })();
+  </script>
+</head>
+
+<body>
+  <!-- Ambient Clay Glow Background -->
+  <div class="clay-ambient-1"></div>
+  <div class="clay-ambient-2"></div>
+  <div class="clay-ambient-3"></div>
+
+  <div class="app-layout">
+    <!-- Sleek Claymorphic Side Navbar -->
+    <aside class="app-sidenav">
+      <div class="sidenav-brand">
+        <div class="brand-clay-icon">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            <path d="m9 12 2 2 4-4" />
+          </svg>
+        </div>
+        <div class="brand-text-group">
+          <div class="brand-badge-line">
+            <h1 class="brand-title">VerdictLens AI</h1>
+          </div>
+          <p class="brand-subtitle">Explainable Multimodal News Analysis</p>
+        </div>
+      </div>
+
+      <!-- Navigation Links -->
+      <nav class="sidenav-menu" role="tablist">
+        <div class="nav-section-label">DASHBOARD</div>
+
+        <button class="nav-item active" id="tab-lab" onclick="switchTab('lab')">
+          <span class="nav-icon">🛡️</span>
+          <span class="nav-label">Veracity Detector</span>
+          <span class="nav-pill-active"></span>
+        </button>
+
+        <button class="nav-item" id="tab-ai-detect" onclick="switchTab('ai-detect')">
+          <span class="nav-icon">🔬</span>
+          <span class="nav-label">AI Media Forensics</span>
+          <span class="nav-pill-active"></span>
+        </button>
+
+        <button class="nav-item" id="tab-batch" onclick="switchTab('batch')">
+          <span class="nav-icon">⚡</span>
+          <span class="nav-label">Batch Forensic Audit</span>
+          <span class="nav-badge-new">Bulk</span>
+          <span class="nav-pill-active"></span>
+        </button>
+
+        <button class="nav-item" id="tab-virality" onclick="switchTab('virality')">
+          <span class="nav-icon">📈</span>
+          <span class="nav-label">Virality Threat Simulator</span>
+          <span class="nav-pill-active"></span>
+        </button>
+
+        <button class="nav-item" id="tab-linguistics" onclick="switchTab('linguistics')">
+          <span class="nav-icon">📝</span>
+          <span class="nav-label">Linguistic & Clickbait</span>
+          <span class="nav-pill-active"></span>
+        </button>
+
+        <button class="nav-item" id="tab-crossmodal" onclick="switchTab('crossmodal')">
+          <span class="nav-icon">🔍</span>
+          <span class="nav-label">Cross-Modal Alignment</span>
+          <span class="nav-pill-active"></span>
+        </button>
+
+        <button class="nav-item" id="tab-chatbot" onclick="switchTab('chatbot')">
+          <span class="nav-icon">💬</span>
+          <span class="nav-label">Veritas AI Chatbot</span>
+          <span class="nav-pill-active"></span>
+        </button>
+
+        <div class="nav-section-label mt-3">DATASETS & STREAMS</div>
+
+        <button class="nav-item" id="tab-dataset" onclick="switchTab('dataset')">
+          <span class="nav-icon">📁</span>
+          <span class="nav-label">Fakeddit Dataset Explorer</span>
+          <span class="nav-pill-active"></span>
+        </button>
+
+        <button class="nav-item" id="tab-model-builder" onclick="switchTab('model-builder')">
+          <span class="nav-icon">⚡</span>
+          <span class="nav-label">Real-Time Model Builder</span>
+          <span class="nav-badge-new">Adaptive</span>
+          <span class="nav-pill-active"></span>
+        </button>
+
+        <button class="nav-item" id="tab-database" onclick="switchTab('database')">
+          <span class="nav-icon">🗄️</span>
+          <span class="nav-label">MongoDB Data Explorer</span>
+          <span class="nav-pill-active"></span>
+        </button>
+
+        <div class="nav-section-label mt-3">BENCHMARKS & SYSTEM</div>
+
+        <button class="nav-item" id="tab-automl" onclick="switchTab('automl')">
+          <span class="nav-icon">📊</span>
+          <span class="nav-label">AutoML & Benchmarks</span>
+          <span class="nav-pill-active"></span>
+        </button>
+
+        <button class="nav-item" id="tab-telemetry" onclick="switchTab('telemetry')">
+          <span class="nav-icon">🖥️</span>
+          <span class="nav-label">Hardware & Telemetry</span>
+          <span class="nav-badge-new">Live</span>
+          <span class="nav-pill-active"></span>
+        </button>
+      </nav>
+
+      <!-- Sidenav Footer Status Bar -->
+      <div class="sidenav-footer">
+        <div class="status-widget clay-inset" onclick="openSettingsModal()">
+          <div class="status-row">
+            <span class="status-dot" id="db-nav-dot"></span>
+            <span class="status-text-nav" id="db-nav-text">MongoDB: Checking...</span>
+          </div>
+          <div class="status-row mt-1">
+            <span class="status-dot" id="gemini-nav-dot"></span>
+            <span class="status-text-nav" id="gemini-nav-text">Gemini: Local Mode</span>
+          </div>
+        </div>
+
+        <button class="clay-btn-settings" onclick="openSettingsModal()">
+          <span>⚙️ Database & API Settings</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content Viewport -->
+    <main class="app-main-viewport">
+      <!-- Top Dynamic Header Bar -->
+      <header class="app-topbar clay-glass-bar">
+        <div class="topbar-left">
+          <div class="breadcrumb">
+            <span class="bc-root">Veritas AI Suite</span>
+            <span class="bc-sep">/</span>
+            <span class="bc-active" id="topbar-breadcrumb">Veracity Detector</span>
+          </div>
+          <button type="button" class="btn-topbar-info" id="topbar-info-btn" onclick="openCurrentTabInfo()"
+            title="Learn how this feature works">
+            <span>ℹ️ How It Works</span>
+          </button>
+        </div>
+
+        <div class="topbar-right">
+          <div class="stat-pill clay-pill">
+            <span class="stat-num">7,000</span>
+            <span class="stat-lbl">Dataset Size</span>
+          </div>
+          <div class="stat-pill clay-pill">
+            <span class="stat-num">85.2%</span>
+            <span class="stat-lbl">Accuracy</span>
+          </div>
+          <div class="stat-pill clay-pill" id="db-stat-pill">
+            <span class="stat-num" id="db-total-records-count">5</span>
+            <span class="stat-lbl">DB Records</span>
+          </div>
+          <!-- Sound FX Toggle Button -->
+          <button class="btn-topbar-sound" id="sound-toggle-btn" onclick="toggleSound()"
+            title="Toggle Cybernetic Audio FX (Key: M)">🔊</button>
+          <!-- Theme Toggle Button -->
+          <button class="btn-theme-toggle" id="theme-toggle-btn" onclick="toggleTheme()"
+            title="Switch Light / Dark Theme (Key: T)" aria-label="Toggle Light and Dark Theme">
+            <span class="theme-icon" id="theme-icon">☀️</span>
+            <span class="theme-label" id="theme-label">Light Mode</span>
+          </button>
+          <button class="btn-topbar-settings" onclick="openSettingsModal()" title="Settings">⚙️</button>
+        </div>
+      </header>
+
+      <!-- TAB 1: OMNI-MODAL VERACITY LAB -->
+      <section id="view-lab" class="tab-content active">
+        <div class="grid-2col">
+          <!-- Input & Omni-Format Panel -->
+          <div class="clay-card">
+            <div class="card-title-row">
+              <div>
+                <h2 class="clay-card-title">Omni-Format News Ingestion</h2>
+                <p class="clay-card-desc">Input text directly, dictate via microphone, upload a document (PDF/DOCX), or
+                  parse a web link.</p>
+              </div>
+              <div class="flex-center-gap8">
+                <button type="button" class="clay-btn-info-sm" onclick="openQuickInfoPopup('lab')">ℹ️ How It
+                  Works</button>
+                <button class="clay-btn-sm" onclick="loadRandomSample()">🎲 Random Sample</button>
+              </div>
+            </div>
+
+            <!-- Format Chooser Pills -->
+            <div class="format-pills">
+              <button type="button" class="format-pill active" id="fmt-text" onclick="setFormatMode('text')">✍️ Text /
+                Direct</button>
+              <button type="button" class="format-pill" id="fmt-voice" onclick="setFormatMode('voice')">🎙️ Voice
+                Speech</button>
+              <button type="button" class="format-pill" id="fmt-doc" onclick="setFormatMode('doc')">📄 Document
+                PDF/DOCX</button>
+              <button type="button" class="format-pill" id="fmt-url" onclick="setFormatMode('url')">🔗 Web URL</button>
+            </div>
+
+            <!-- Voice Recording Panel -->
+            <div id="voice-panel" class="format-panel clay-inset" style="display: none;">
+              <div class="voice-controls">
+                <button type="button" class="clay-btn-voice" id="btn-mic-toggle" onclick="toggleVoiceDictation()">
+                  <span class="mic-icon" id="mic-icon">🎙️</span>
+                  <span id="mic-btn-label">Start Dictation</span>
+                </button>
+                <div class="voice-status-box">
+                  <div class="voice-wave" id="voice-wave" style="display: none;">
+                    <span></span><span></span><span></span><span></span><span></span>
+                  </div>
+                  <span id="voice-status-text" class="text-dim">Click button and speak clearly into microphone...</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Document Upload Panel -->
+            <div id="doc-panel" class="format-panel clay-inset" style="display: none;">
+              <div class="file-upload-box" onclick="document.getElementById('doc-file-input').click()">
+                <input type="file" id="doc-file-input" accept=".pdf,.docx,.txt" style="display: none;"
+                  onchange="handleDocFileUpload(event)">
+                <div class="upload-icon">📄</div>
+                <p>Click to upload <strong>PDF, DOCX, or TXT</strong></p>
+                <span class="text-dim">Veritas will parse and extract text & metadata automatically</span>
+              </div>
+              <div id="doc-parsing-status" class="mt-2 text-dim" style="display: none; font-size: 0.8rem;"></div>
+            </div>
+
+            <!-- URL Extraction Panel -->
+            <div id="url-panel" class="format-panel clay-inset" style="display: none;">
+              <div class="url-input-row">
+                <input type="url" id="url-web-input" class="clay-input"
+                  placeholder="https://news-site.com/article-headline...">
+                <button type="button" class="clay-btn-primary" onclick="extractWebArticle()">Scrape & Parse 🔗</button>
+              </div>
+              <div id="url-parsing-status" class="mt-2 text-dim" style="display: none; font-size: 0.8rem;"></div>
+            </div>
+
+            <!-- Main Input Form -->
+            <form id="prediction-form" onsubmit="handleAnalyzeSubmit(event)">
+              <div class="form-group mt-3">
+                <div class="flex-between">
+                  <label for="headline-input" class="clay-label">News Headline / Article Text</label>
+                  <span class="word-counter" id="word-count">0 words</span>
+                </div>
+                <textarea id="headline-input" class="clay-textarea" rows="4"
+                  placeholder="Enter headline or article snippet (e.g. Scientists discover ancient subterranean water network on Mars)..."
+                  required>NASA discovers traces of ancient micro-organisms in Martian subterranean riverbeds</textarea>
+              </div>
+
+              <!-- Multimodal Image Attachment -->
+              <div class="form-group">
+                <label class="clay-label">Attached Multimodal Visual Media (Optional)</label>
+                <div class="image-drop-clay" id="image-drop-zone"
+                  onclick="document.getElementById('image-file-input').click()">
+                  <input type="file" id="image-file-input" accept="image/*" style="display: none;"
+                    onchange="handleImageUpload(event)">
+                  <div id="drop-placeholder" style="display: none;">
+                    <div class="drop-icon">🖼️</div>
+                    <p>Click or drag image to attach for Vision-ResNet & Prompt Alignment</p>
+                    <span class="text-dim">Supports JPG, PNG, WebP</span>
+                  </div>
+                  <div id="image-preview-container" style="display: flex;">
+                    <img id="image-preview" src="/images/ai_samples/synthetic_ai_gen.jpg" alt="Attached media preview">
+                    <div class="img-ctrl-btns">
+                      <button type="button" class="clay-btn-sm" onclick="toggleForensicLoupe('image-preview', event)">🔬
+                        ZOOM</button>
+                      <button type="button" class="clay-btn-danger-sm" onclick="clearImage(event)">Remove Image
+                        ✕</button>
+                    </div>
+                  </div>
+                </div>
+                <input type="hidden" id="existing-image-path" value="data/images/ai_samples/synthetic_ai_gen.jpg">
+              </div>
+
+              <!-- Engagement Metadata Sliders -->
+              <div class="metadata-sliders-clay">
+                <div class="slider-box clay-inset">
+                  <div class="slider-header">
+                    <span>Upvotes Score</span>
+                    <strong id="score-val" class="slider-num">10</strong>
+                  </div>
+                  <input type="range" id="score-slider" min="0" max="5000" step="50" value="10"
+                    oninput="updateScoreVal(this.value)">
+                </div>
+
+                <div class="slider-box clay-inset">
+                  <div class="slider-header">
+                    <span>Comments Count</span>
+                    <strong id="comments-val" class="slider-num">2</strong>
+                  </div>
+                  <input type="range" id="comments-slider" min="0" max="1000" step="10" value="2"
+                    oninput="updateCommentsVal(this.value)">
+                </div>
+
+                <div class="slider-box clay-inset">
+                  <div class="slider-header">
+                    <span>Upvote Ratio</span>
+                    <strong id="upvote-val" class="slider-num">0.80</strong>
+                  </div>
+                  <input type="range" id="upvote-slider" min="0.1" max="1.0" step="0.05" value="0.80"
+                    oninput="updateUpvoteVal(this.value)">
+                </div>
+              </div>
+
+              <button type="submit" class="clay-btn-primary btn-block" id="btn-analyze">
+                <span id="btn-text">🚀 Execute Multimodal Veracity & Deep Evidence Analysis</span>
+                <span id="btn-spinner" class="spinner" style="display: none;"></span>
+              </button>
+            </form>
+          </div>
+
+          <!-- Result & Deep Evidence Section -->
+          <div class="clay-card" id="results-panel">
+            <div class="card-title-row">
+              <div>
+                <h2 class="clay-card-title">Veracity Verdict & Evidence Dossier</h2>
+                <p class="clay-card-desc">Multimodal XGBoost prediction with SHAP explanations & deep citation/debunking
+                  report.</p>
+              </div>
+            </div>
+
+            <div id="initial-state" class="clay-placeholder">
+              <div class="radar-anim">
+                <div class="pulse-ring"></div>
+                <span>🔍</span>
+              </div>
+              <h3>Ready for Multimodal Analysis</h3>
+              <p>Submit text, document, voice recording, or image to generate comprehensive veracity assessment,
+                evidence citations, and SHAP decision forces.</p>
+            </div>
+
+            <div id="prediction-output" style="display: none;">
+              <!-- Verdict Badge Banner -->
+              <div id="verdict-banner" class="clay-verdict-banner">
+                <div class="verdict-left">
+                  <div class="verdict-clay-icon" id="verdict-icon">🛡️</div>
+                  <div>
+                    <span class="verdict-sub">Classification Outcome</span>
+                    <h3 id="verdict-text" class="verdict-heading">AUTHENTIC NEWS</h3>
+                  </div>
+                </div>
+                <div class="verdict-right">
+                  <span class="conf-large" id="confidence-val">88.2%</span>
+                  <span class="conf-lbl">Confidence Score</span>
+                </div>
+              </div>
+
+              <!-- Quick Forensic Dossier Action Bar -->
+              <div class="flex-between mt-2 mb-3" style="flex-wrap: wrap; gap: 8px;">
+                <button type="button" class="clay-btn-sm" onclick="downloadResultsAsPDF()"
+                  title="Download official veracity verdict and evidence dossier as PDF">
+                  <span>📥 Download Results as PDF</span>
+                </button>
+                <button type="button" class="clay-btn-sm" onclick="openCurrentDossierModal()"
+                  title="Export official ISO/IEC 27037 compliant forensic intelligence dossier">
+                  <span>📄 Generate Signed Dossier (SHA-256)</span>
+                </button>
+                <button type="button" class="clay-btn-sm" onclick="sendCurrentToVirality()"
+                  title="Simulate viral propagation and threat trajectory">
+                  <span>📈 Simulate Viral Threat</span>
+                </button>
+                <button type="button" class="clay-btn-sm" onclick="sendCurrentToLinguistics()"
+                  title="Inspect headline sensationalism and clickbait">
+                  <span>📝 Linguistic Scan</span>
+                </button>
+              </div>
+
+              <!-- Probability Meter -->
+              <div class="prob-section">
+                <div class="prob-flex-labels">
+                  <span class="text-success font-mono">Real / Authentic: <strong
+                      id="prob-real-text">94.1%</strong></span>
+                  <span class="text-danger font-mono">Fake / Misinformation: <strong
+                      id="prob-fake-text">5.9%</strong></span>
+                </div>
+                <div class="clay-bar-track">
+                  <div id="prob-bar-fill" class="clay-bar-fill"></div>
+                </div>
+              </div>
+
+              <!-- Modality Chips -->
+              <h4 class="sub-heading">Modality Baseline & Alignment Signals</h4>
+              <div class="modality-clay-grid">
+                <div class="mod-clay-box">
+                  <span class="mod-title">Text Baseline</span>
+                  <span class="mod-value" id="mod-text-prob">28.5% Fake</span>
+                </div>
+                <div class="mod-clay-box">
+                  <span class="mod-title">Vision Baseline</span>
+                  <span class="mod-value" id="mod-vision-prob">48.6% Fake</span>
+                </div>
+                <div class="mod-clay-box">
+                  <span class="mod-title">Prompt Alignment</span>
+                  <span class="mod-value" id="mod-prompt-prob">57.6% Fake</span>
+                </div>
+                <div class="mod-clay-box">
+                  <span class="mod-title">Vision Integrity</span>
+                  <span class="mod-value text-success" id="mod-vision-mask">Valid Image</span>
+                </div>
+              </div>
+
+              <!-- Deep Evidence / Debunking Section -->
+              <div class="evidence-section-clay" id="evidence-section">
+                <div class="evidence-header">
+                  <h4 class="sub-heading" id="evidence-heading">Deep Evidence & Citation Dossier</h4>
+                  <span id="evidence-source-tag" class="badge-source">Grounded Analysis</span>
+                </div>
+                <p id="evidence-summary" class="evidence-summary-text"></p>
+
+                <!-- Dynamic Evidence Box -->
+                <div id="evidence-dynamic-container"></div>
+
+                <!-- Linguistic Red Flags -->
+                <div class="flags-box clay-inset">
+                  <h5 class="flags-title" id="flags-title">Linguistic & Content Signals</h5>
+                  <ul id="flags-list" class="flags-list"></ul>
+                </div>
+              </div>
+
+              <!-- SHAP Local Force Attribution -->
+              <h4 class="sub-heading mt-3">SHAP Decision Forces (TreeExplainer Local Attribution)</h4>
+              <div class="shap-clay-grid">
+                <div class="shap-col-clay shap-fake-col">
+                  <h5>Pushes Toward Fake (+SHAP)</h5>
+                  <div id="shap-positive-list" class="shap-stack"></div>
+                </div>
+                <div class="shap-col-clay shap-real-col">
+                  <h5>Pushes Toward Real (-SHAP)</h5>
+                  <div id="shap-negative-list" class="shap-stack"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 2: AI MEDIA FORENSICS (AI vs HUMAN IMAGE DETECTOR) -->
+      <section id="view-ai-detect" class="tab-content">
+        <div class="grid-2col">
+          <!-- AI Upload & Inspector Controller -->
+          <div class="clay-card">
+            <div class="card-title-row">
+              <div>
+                <h2 class="clay-card-title">AI-Generated vs Authentic Media Forensics</h2>
+                <p class="clay-card-desc">Comprehensive synthetic media inspection with Error Level Analysis (ELA), 2D
+                  Fourier Spectrum (FFT), and Laplacian noise variance.</p>
+              </div>
+              <div class="flex-center-gap8">
+                <button type="button" class="clay-btn-info-sm" onclick="openQuickInfoPopup('ai-detect')">ℹ️ How It
+                  Works</button>
+                <button type="button" class="clay-btn-sm" onclick="loadRandomAISample()">🎲 Random Sample</button>
+              </div>
+            </div>
+
+            <!-- Quick Presets -->
+            <div class="forensic-presets-row">
+              <span class="text-dim" style="font-size: 0.78rem;">Quick Test Presets:</span>
+              <button type="button" class="clay-btn-sm" onclick="loadAIPreset('synthetic_ai')">🤖 Synthetic AI
+                Media</button>
+              <button type="button" class="clay-btn-sm" onclick="loadAIPreset('camera_real')">📸 Authentic Camera
+                Capture</button>
+              <button type="button" class="clay-btn-sm" onclick="loadAIPreset('smoothed_latent')">🎨 Smoothed Latent
+                Art</button>
+            </div>
+
+            <div class="image-drop-clay mt-3" id="ai-drop-area"
+              onclick="document.getElementById('ai-img-input').click()">
+              <input type="file" id="ai-img-input" accept="image/*" style="display: none;"
+                onchange="handleAIImageUpload(event)">
+              <div id="ai-placeholder" style="display: none;">
+                <div class="drop-icon">🔍</div>
+                <p>Upload or drag & drop image for AI forensics scan</p>
+                <span class="text-dim">Supports Midjourney, DALL-E 3, Stable Diffusion XL, and Camera captures</span>
+              </div>
+              <div id="ai-preview-box" style="display: block;">
+                <img id="ai-preview-img" src="/images/ai_samples/synthetic_ai_gen.jpg" alt="AI Scan Preview">
+                <div class="flex-between mt-2">
+                  <p class="text-dim" style="font-size:0.75rem;" id="ai-img-dims">Preset: Synthetic AI Media (Diffusion
+                    / VAE Grid Artifacts)</p>
+                  <button type="button" class="clay-btn-sm" onclick="toggleForensicLoupe('ai-preview-img', event)">🔬
+                    Zoom Lens</button>
+                </div>
+              </div>
+            </div>
+
+            <button type="button" class="clay-btn-primary btn-block mt-3" id="btn-run-ai-scan" onclick="runAIScan()">
+              <span id="ai-btn-text">🔬 Execute Multi-Vector Forensic Inspection</span>
+              <span id="ai-btn-spinner" class="spinner" style="display: none;"></span>
+            </button>
+          </div>
+
+          <!-- AI Forensic Results -->
+          <div class="clay-card" id="ai-results-panel">
+            <div class="card-title-row">
+              <div>
+                <h2 class="clay-card-title">Forensic Intelligence Report</h2>
+                <p class="clay-card-desc">Calculated synthetic probability, provenance signature, and visual artifact
+                  maps.</p>
+              </div>
+            </div>
+
+            <div id="ai-initial-state" class="clay-placeholder">
+              <div class="ai-scan-icon">🤖</div>
+              <h3>No Media Scanned Yet</h3>
+              <p>Upload an image or select a quick preset to generate synthetic probability, ELA difference maps, and
+                FFT frequency spectra.</p>
+            </div>
+
+            <div id="ai-output-box" style="display: none;">
+              <!-- Verdict Pill -->
+              <div id="ai-verdict-pill" class="ai-verdict-clay">
+                <div>
+                  <span class="verdict-sub">Media Provenance Verdict</span>
+                  <h3 id="ai-verdict-text" class="verdict-heading">AI GENERATED</h3>
+                  <span id="ai-provenance-tag" class="badge-source mt-1" style="display:inline-block;">Latent Diffusion
+                    Model</span>
+                </div>
+                <div class="text-right">
+                  <span id="ai-conf-score" class="conf-large">92.4%</span>
+                  <span class="conf-lbl">Synthetic Confidence</span>
+                </div>
+              </div>
+
+              <!-- Dual Probability Bars -->
+              <div class="dual-bars mt-3">
+                <div class="dual-bar-item">
+                  <div class="flex-between">
+                    <span>Synthetic AI Probability:</span>
+                    <strong id="ai-prob-val">92.4%</strong>
+                  </div>
+                  <div class="clay-bar-track">
+                    <div id="ai-prob-bar" class="clay-bar-fill bg-danger"></div>
+                  </div>
+                </div>
+                <div class="dual-bar-item">
+                  <div class="flex-between">
+                    <span>Authentic Camera Probability:</span>
+                    <strong id="human-prob-val">7.6%</strong>
+                  </div>
+                  <div class="clay-bar-track">
+                    <div id="human-prob-bar" class="clay-bar-fill bg-success"></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Visual Forensic Maps (ELA & FFT & LSB) -->
+              <h4 class="sub-heading mt-3">Visual Forensic Artifact Maps</h4>
+              <div class="visual-maps-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
+                <div class="vmap-card clay-inset">
+                  <div class="vmap-title">Error Level Analysis (ELA)</div>
+                  <img id="ela-map-img" src="" alt="ELA Heatmap" class="vmap-img">
+                  <span class="vmap-caption">Compression variance plane</span>
+                </div>
+                <div class="vmap-card clay-inset">
+                  <div class="vmap-title">2D Fourier Spectrum (FFT)</div>
+                  <img id="fft-map-img" src="" alt="FFT Spectrum" class="vmap-img">
+                  <span class="vmap-caption">Spatial frequency distribution</span>
+                </div>
+                <div class="vmap-card clay-inset">
+                  <div class="vmap-title">LSB Bit-Plane Steganography</div>
+                  <img id="lsb-map-img" src="" alt="LSB Steganography Map" class="vmap-img">
+                  <span class="vmap-caption">Noise & bit discontinuity plane</span>
+                </div>
+              </div>
+
+              <!-- EXIF Hardware Provenance -->
+              <h4 class="sub-heading mt-3">EXIF & Hardware Provenance</h4>
+              <div id="ai-exif-box" class="flags-box clay-inset">
+                <div class="grid-2col-gap10" id="ai-exif-grid" style="font-size: 0.82rem;"></div>
+              </div>
+
+              <!-- Forensic Measurements -->
+              <h4 class="sub-heading mt-3">Quantitative Forensic Metrics</h4>
+              <div class="metrics-clay-grid" id="ai-metrics-grid"></div>
+
+              <!-- Detected Artifacts -->
+              <h4 class="sub-heading mt-3">Identified Forensic Signatures</h4>
+              <div id="ai-artifacts-list" class="artifacts-stack"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 3: CROSS-MODAL SEMANTIC ALIGNMENT & DISSONANCE (NEW FEATURE) -->
+      <section id="view-crossmodal" class="tab-content">
+        <div class="grid-2col">
+          <!-- Cross-Modal Controller -->
+          <div class="clay-card">
+            <div class="card-title-row">
+              <div>
+                <h2 class="clay-card-title">Cross-Modal Semantic Alignment Analyzer</h2>
+                <p class="clay-card-desc">Measures semantic consistency between text headlines and attached imagery to
+                  detect multimodal dissonance & clickbait mismatch.</p>
+              </div>
+              <div class="flex-center-gap8">
+                <button type="button" class="clay-btn-info-sm" onclick="openQuickInfoPopup('crossmodal')">ℹ️ How It
+                  Works</button>
+                <button type="button" class="clay-btn-sm" onclick="loadRandomCrossModalSample()">🎲 Random
+                  Sample</button>
+              </div>
+            </div>
+
+            <form id="crossmodal-form" onsubmit="handleCrossModalSubmit(event)">
+              <div class="form-group">
+                <label class="clay-label">Headline / Claim Text</label>
+                <textarea id="cm-headline-input" class="clay-textarea" rows="3"
+                  placeholder="Enter headline text to measure against image..."
+                  required>NASA discovers traces of ancient micro-organisms in Martian subterranean riverbeds</textarea>
+              </div>
+
+              <div class="form-group">
+                <label class="clay-label">Multimodal Image</label>
+                <div class="image-drop-clay" onclick="document.getElementById('cm-img-input').click()">
+                  <input type="file" id="cm-img-input" accept="image/*" style="display: none;"
+                    onchange="handleCrossModalImage(event)">
+                  <div id="cm-placeholder" style="display: none;">
+                    <div class="drop-icon">🖼️</div>
+                    <p>Upload image to test cross-modal cosine alignment</p>
+                  </div>
+                  <div id="cm-preview-box" style="display: block;">
+                    <img id="cm-preview-img" src="/images/ai_samples/synthetic_ai_gen.jpg" alt="CrossModal Preview"
+                      style="max-height: 140px; border-radius: 8px;">
+                  </div>
+                </div>
+              </div>
+
+              <button type="submit" class="clay-btn-primary btn-block" id="btn-run-crossmodal">
+                <span id="cm-btn-text">🔍 Compute Semantic Alignment & Contradiction Risk</span>
+                <span id="cm-btn-spinner" class="spinner" style="display: none;"></span>
+              </button>
+            </form>
+          </div>
+
+          <!-- Cross-Modal Results -->
+          <div class="clay-card" id="cm-results-card">
+            <div class="card-title-row">
+              <div>
+                <h2 class="clay-card-title">Alignment & Contradiction Dossier</h2>
+                <p class="clay-card-desc">Cosine similarity, L2 divergence, and token-level semantic weights.</p>
+              </div>
+            </div>
+
+            <div id="cm-output-box">
+              <!-- Alignment Banner -->
+              <div class="clay-verdict-banner" id="cm-banner"
+                style="background: linear-gradient(135deg, rgba(6, 182, 212, 0.15), rgba(99, 102, 241, 0.12));">
+                <div class="verdict-left">
+                  <div class="verdict-clay-icon" style="background: linear-gradient(135deg, #06b6d4, #6366f1);">⚡</div>
+                  <div>
+                    <span class="verdict-sub">Semantic Consistency Grade</span>
+                    <h3 id="cm-grade-text" class="verdict-heading" style="color:#a5f3fc;">STRONG ALIGNMENT</h3>
+                  </div>
+                </div>
+                <div class="verdict-right">
+                  <span id="cm-cosine-score" class="conf-large">0.864</span>
+                  <span class="conf-lbl">Cosine Similarity</span>
+                </div>
+              </div>
+
+              <!-- Metric Grid -->
+              <div class="metrics-clay-grid mt-3">
+                <div class="metric-clay-tile">
+                  <span class="metric-clay-name">L2 Latent Divergence</span>
+                  <span class="metric-clay-num" id="cm-l2-score">0.521</span>
+                </div>
+                <div class="metric-clay-tile">
+                  <span class="metric-clay-name">Contradiction Risk</span>
+                  <span class="metric-clay-num text-success" id="cm-risk-score">4.8%</span>
+                </div>
+              </div>
+
+              <!-- Token Alignment Chips -->
+              <h4 class="sub-heading mt-3">Token-to-Visual Semantic Weights</h4>
+              <div id="cm-token-chips" class="token-chips-flex"></div>
+
+              <!-- Joint Space Representation -->
+              <div class="clay-inset p-3 mt-3">
+                <h5 class="flags-title">Joint Latent Space Mapping</h5>
+                <ul class="flags-list" id="cm-modality-list">
+                  <li><strong>Text Encoder:</strong> MiniLM-L6 Semantic Vector (384 dimensions)</li>
+                  <li><strong>Vision Encoder:</strong> ResNet-18 Deep Residual Backbone (512 dimensions)</li>
+                  <li><strong>Joint Fusion:</strong> 913-Dimensional Fused Multimodal Tensor</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 4: FACT-CHECK AI CHATBOT (FULL WIDTH WORKSPACE) -->
+      <section id="view-chatbot" class="tab-content">
+        <div class="clay-card chat-fullwidth-card">
+          <div class="card-title-row">
+            <div class="chat-header-profile">
+              <div class="bot-avatar">🤖</div>
+              <div>
+                <h3 class="clay-card-title">Veritas Conversational Intelligence</h3>
+                <p class="clay-card-desc" id="chat-engine-label">ChatGPT-style streaming assistant powered by Gemini &
+                  Local Reasoning Engine</p>
+              </div>
+            </div>
+            <div class="flex-center-gap8">
+              <button type="button" class="clay-btn-info-sm" onclick="openQuickInfoPopup('chatbot')">ℹ️ How It
+                Works</button>
+              <button type="button" class="clay-btn-sm" onclick="loadRandomChatSample()">🎲 Random Sample</button>
+              <button class="clay-btn-sm" onclick="clearChat()">🗑️ Clear Conversation</button>
+            </div>
+          </div>
+
+          <!-- Message History -->
+          <div class="chat-messages-box clay-inset" id="chat-messages">
+            <div class="chat-msg msg-bot">
+              <div class="msg-bubble">
+                <p>👋 Hello! I am <strong>Veritas AI</strong>, your multimodal intelligence assistant.</p>
+                <p>You can ask me to fact-check any breaking story, investigate deepfakes, explain machine learning
+                  embeddings, write Python code, or explore the Fakeddit dataset.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Chat Suggestions Row -->
+          <div class="chat-suggestions-row">
+            <button type="button" class="clay-btn-sm"
+              onclick="sendSuggestion('How do diffusion models generate synthetic images?')">🤖 How Diffusion
+              Works</button>
+            <button type="button" class="clay-btn-sm"
+              onclick="sendSuggestion('What are Error Level Analysis (ELA) and Fourier FFT spectrums?')">🔬 Explain ELA
+              & FFT</button>
+            <button type="button" class="clay-btn-sm"
+              onclick="sendSuggestion('Explain how the Fakeddit multimodal dataset is structured')">📁 Explain Fakeddit
+              Dataset</button>
+            <button type="button" class="clay-btn-sm"
+              onclick="sendSuggestion('Write a Python script to extract MiniLM text embeddings and train XGBoost')">💻
+              Python XGBoost Script</button>
+          </div>
+
+          <!-- Chat Input -->
+          <form class="chat-input-form mt-2" onsubmit="sendChatMessage(event)">
+            <input type="text" id="chat-input" class="clay-input"
+              placeholder="Ask Veritas anything (real-time line-by-line token streaming)..." required>
+            <button type="submit" class="clay-btn-primary" id="btn-chat-send">Send 🚀</button>
+            <button type="button" class="clay-btn-danger-sm" id="btn-chat-stop" style="display: none;"
+              onclick="stopChatStream()">⏹️ Stop</button>
+          </form>
+        </div>
+      </section>
+
+      <!-- TAB 5: FAKEDDIT DATASET & CORPUS EXPLORER (NEW DEDICATED PAGE) -->
+      <section id="view-dataset" class="tab-content">
+        <div class="clay-card">
+          <!-- Header & Stats Overview -->
+          <div class="card-title-row">
+            <div>
+              <h2 class="clay-card-title">Fakeddit Multimodal Dataset Explorer</h2>
+              <p class="clay-card-desc">Inspect the full 7,000 multimodal benchmark samples across verified Train
+                (5,000), Val (1,000), and Test (1,000) splits with zero leakage.</p>
+            </div>
+            <div class="flex-center-gap8">
+              <button type="button" class="clay-btn-info-sm" onclick="openQuickInfoPopup('dataset')">ℹ️ How It
+                Works</button>
+              <button class="clay-btn-sm" onclick="openSchemaModal()">📋 Schema Dictionary</button>
+              <button class="clay-btn-sm" onclick="refreshDatasetView()">🔄 Refresh</button>
+            </div>
+          </div>
+
+          <!-- Dataset Metric Cards -->
+          <div class="db-telemetry-grid mt-2">
+            <div class="db-stat-tile clay-inset">
+              <span class="db-stat-lbl">Total Samples</span>
+              <strong class="db-stat-val font-mono" id="ds-stat-total">7,000</strong>
+            </div>
+            <div class="db-stat-tile clay-inset">
+              <span class="db-stat-lbl">Train Split</span>
+              <strong class="db-stat-val font-mono" id="ds-stat-train">5,000</strong>
+            </div>
+            <div class="db-stat-tile clay-inset">
+              <span class="db-stat-lbl">Val Split</span>
+              <strong class="db-stat-val font-mono" id="ds-stat-val">1,000</strong>
+            </div>
+            <div class="db-stat-tile clay-inset">
+              <span class="db-stat-lbl">Test Split</span>
+              <strong class="db-stat-val font-mono" id="ds-stat-test">1,000</strong>
+            </div>
+            <div class="db-stat-tile clay-inset">
+              <span class="db-stat-lbl">Class Balance</span>
+              <strong class="db-stat-val text-success" id="ds-stat-balance">50.0% Real / 50.0% Fake</strong>
+            </div>
+          </div>
+
+          <!-- Dataset Toolbar & Filters -->
+          <div class="db-toolbar mt-3">
+            <div class="db-coll-tabs">
+              <button type="button" class="db-tab-pill active" id="dstab-all" onclick="setDatasetSplit('all')">🌐 All
+                Splits (7,000)</button>
+              <button type="button" class="db-tab-pill" id="dstab-train" onclick="setDatasetSplit('train')">🏋️ Train
+                (5,000)</button>
+              <button type="button" class="db-tab-pill" id="dstab-val" onclick="setDatasetSplit('val')">🔍 Validation
+                (1,000)</button>
+              <button type="button" class="db-tab-pill" id="dstab-test" onclick="setDatasetSplit('test')">🎯 Test
+                (1,000)</button>
+            </div>
+
+            <div class="db-search-row">
+              <input type="text" id="dataset-search-input" class="clay-input"
+                placeholder="Search headline, subreddit, or ID..." oninput="onDatasetSearchChange()">
+              <select id="dataset-veracity-filter" class="clay-input" onchange="onDatasetSearchChange()">
+                <option value="all">All Veracity</option>
+                <option value="real">Real News Only (0)</option>
+                <option value="fake">Fake News Only (1)</option>
+                <option value="1">Satire / Parody</option>
+                <option value="2">Misleading Content</option>
+                <option value="3">Manipulated Media</option>
+                <option value="4">False Connection</option>
+                <option value="5">Imposter Content</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Dataset Records Table -->
+          <div class="db-table-container clay-inset mt-3">
+            <table class="clay-table" id="dataset-table">
+              <thead>
+                <tr>
+                  <th>Thumbnail</th>
+                  <th>ID / Split</th>
+                  <th>Headline / Title</th>
+                  <th>Subreddit</th>
+                  <th>Veracity Label</th>
+                  <th>Score / Ratio</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="dataset-table-body">
+                <tr>
+                  <td colspan="7" class="text-dim text-center py-4">Loading Fakeddit dataset samples...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Pagination Bar -->
+          <div class="flex-between mt-3">
+            <span class="text-dim" style="font-size:0.8rem;" id="dataset-pagination-info">Showing samples</span>
+            <div class="pagination-controls">
+              <button class="clay-btn-sm" id="btn-ds-prev" onclick="changeDatasetPage(-1)">◀ Previous</button>
+              <span class="font-mono text-cyan" id="ds-page-num" style="font-size:0.85rem; padding:0 8px;">Page 1</span>
+              <button class="clay-btn-sm" id="btn-ds-next" onclick="changeDatasetPage(1)">Next ▶</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 6: REAL-TIME MODEL BUILDER & DATA PIPELINE -->
+      <section id="view-model-builder" class="tab-content">
+        <div class="grid-2col">
+          <!-- Ingestion & Retraining Trigger -->
+          <div class="clay-card">
+            <div class="card-title-row">
+              <div>
+                <h2 class="clay-card-title">Real-Time Data Ingestion & Model Builder</h2>
+                <p class="clay-card-desc">Ingest live streaming news data and trigger incremental retraining of the
+                  Multimodal Fusion Model.</p>
+              </div>
+              <div class="flex-center-gap8">
+                <button type="button" class="clay-btn-info-sm" onclick="openQuickInfoPopup('model-builder')">ℹ️ How It
+                  Works</button>
+              </div>
+            </div>
+
+            <!-- Ingest New Stream Sample Form -->
+            <div class="clay-inset p-3 mb-3">
+              <div class="flex-between mb-2">
+                <h4 class="sub-heading" style="margin-bottom:0;">Ingest Live Data Sample into Stream</h4>
+                <button type="button" class="clay-btn-sm" onclick="generateSimulatedStreamBatch()">⚡ Ingest 3 Live News
+                  Feeds</button>
+              </div>
+
+              <form id="ingest-sample-form" onsubmit="handleIngestSampleSubmit(event)">
+                <div class="form-group">
+                  <input type="text" id="stream-title-input" class="clay-input"
+                    placeholder="Enter live news claim or headline..." required>
+                </div>
+                <div class="grid-2col-gap10 mt-2">
+                  <div>
+                    <label class="clay-label">Ground Truth Label</label>
+                    <select id="stream-label-select" class="clay-input">
+                      <option value="0">Authentic News (Real)</option>
+                      <option value="1">Fake News / Misinformation</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="clay-label">Category / Domain</label>
+                    <input type="text" id="stream-cat-input" class="clay-input" value="Live Media Stream">
+                  </div>
+                </div>
+
+                <div class="grid-2col-gap10 mt-2">
+                  <div>
+                    <label class="clay-label">Verified Source / Wire</label>
+                    <input type="text" id="stream-source-input" class="clay-input" value="Verified News Wire">
+                  </div>
+                  <div>
+                    <label class="clay-label">Engagement Score / Ratio</label>
+                    <input type="text" id="stream-score-input" class="clay-input" value="Score: 450 | Upvote: 0.88">
+                  </div>
+                </div>
+
+                <button type="submit" class="clay-btn-secondary btn-block mt-3" id="btn-ingest-sample">
+                  <span>📥 Ingest Sample into Training Stream Pool</span>
+                </button>
+                <div id="ingest-feedback-msg" class="mt-2 text-success" style="display:none; font-size:0.8rem;"></div>
+              </form>
+            </div>
+
+            <!-- Active Training Stream Pool -->
+            <h4 class="sub-heading">Live Stream Data Ingestion Pool (<span id="stream-pool-count">6</span> samples)</h4>
+            <div class="stream-pool-box clay-inset" id="stream-pool-container"></div>
+
+            <!-- Training Control Sliders -->
+            <div class="mt-3">
+              <h4 class="sub-heading">Online Retraining Hyperparameters</h4>
+              <div class="grid-2col-gap10">
+                <div class="slider-box clay-inset">
+                  <div class="slider-header">
+                    <span>Training Epochs / Steps</span>
+                    <strong id="epoch-val" class="slider-num">12</strong>
+                  </div>
+                  <input type="range" id="epoch-slider" min="5" max="30" step="1" value="12"
+                    oninput="document.getElementById('epoch-val').innerText = this.value">
+                </div>
+                <div class="slider-box clay-inset">
+                  <div class="slider-header">
+                    <span>Learning Rate (&eta;)</span>
+                    <strong id="lr-val" class="slider-num">0.05</strong>
+                  </div>
+                  <input type="range" id="lr-slider" min="0.01" max="0.2" step="0.01" value="0.05"
+                    oninput="document.getElementById('lr-val').innerText = Number(this.value).toFixed(2)">
+                </div>
+              </div>
+
+              <!-- Retrain Trigger Button -->
+              <button type="button" class="clay-btn-primary btn-block mt-3" id="btn-retrain-model"
+                onclick="triggerRealtimeModelTraining()">
+                <span id="retrain-btn-text">⚡ Build & Retrain Multimodal Model on Real-Time Data</span>
+                <span id="retrain-btn-spinner" class="spinner" style="display: none;"></span>
+              </button>
+
+              <!-- Progress Bar -->
+              <div id="training-progress-container" class="mt-3" style="display: none;">
+                <div class="flex-between" style="font-size: 0.8rem;">
+                  <span id="training-step-text" class="text-dim">Extracting MiniLM & ResNet features (913-d)...</span>
+                  <strong id="training-pct-text" class="font-mono text-success">0%</strong>
+                </div>
+                <div class="clay-bar-track mt-1">
+                  <div id="training-bar-fill" class="clay-bar-fill" style="width: 0%;"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Training Telemetry & Real-Time Prediction Sandbox -->
+          <div class="clay-card">
+            <div class="card-title-row">
+              <div>
+                <h2 class="clay-card-title">Training Telemetry & Convergence Dashboard</h2>
+                <p class="clay-card-desc">Live convergence metrics, confusion matrix, and feature weight adaptations.
+                </p>
+              </div>
+            </div>
+
+            <!-- Real-Time Metrics Tiles -->
+            <div class="metrics-clay-grid" id="realtime-metrics-grid">
+              <div class="metric-clay-tile">
+                <span class="metric-clay-name">Model Accuracy</span>
+                <span class="metric-clay-num" id="rt-metric-acc">85.20%</span>
+              </div>
+              <div class="metric-clay-tile">
+                <span class="metric-clay-name">Macro F1-Score</span>
+                <span class="metric-clay-num" id="rt-metric-f1">0.8517</span>
+              </div>
+              <div class="metric-clay-tile">
+                <span class="metric-clay-name">ROC-AUC Score</span>
+                <span class="metric-clay-num" id="rt-metric-roc">0.9256</span>
+              </div>
+              <div class="metric-clay-tile">
+                <span class="metric-clay-name">Total Samples Trained</span>
+                <span class="metric-clay-num" id="rt-metric-samples">5,006</span>
+              </div>
+            </div>
+
+            <!-- Convergence Graphs -->
+            <h4 class="sub-heading mt-3">Live Loss & Accuracy Convergence</h4>
+            <div class="clay-inset p-3" id="convergence-graph-container">
+              <div id="convergence-placeholder" class="text-dim"
+                style="font-size: 0.82rem; text-align: center; padding: 16px 0;">
+                Click <strong>"Build & Retrain Multimodal Model"</strong> to generate step-by-step loss reduction and
+                accuracy curves.
+              </div>
+              <div id="convergence-chart-bars" class="convergence-bars-grid" style="display: none;"></div>
+            </div>
+
+            <!-- Top Feature Importance Gains -->
+            <h4 class="sub-heading mt-3">Adapted Feature Importance Gain</h4>
+            <div id="rt-feature-gains-list" class="feature-gains-stack">
+              <div class="gain-row">
+                <span class="font-mono text-dim" style="font-size:0.8rem;">Cross-Modal Alignment Cosine
+                  Similarity</span>
+                <span class="clay-tag-success" style="font-size:0.75rem;">+14.2%</span>
+              </div>
+              <div class="gain-row">
+                <span class="font-mono text-dim" style="font-size:0.8rem;">MiniLM Semantic Text Embedding (Dim
+                  128)</span>
+                <span class="clay-tag-success" style="font-size:0.75rem;">+11.8%</span>
+              </div>
+              <div class="gain-row">
+                <span class="font-mono text-dim" style="font-size:0.8rem;">ResNet-18 Vision Texture
+                  Representation</span>
+                <span class="clay-tag-success" style="font-size:0.75rem;">+9.4%</span>
+              </div>
+            </div>
+
+            <!-- Real-Time Model Prediction Sandbox -->
+            <h4 class="sub-heading mt-3">⚡ Live Prediction Sandbox on Retrained Model</h4>
+            <div class="clay-inset p-3">
+              <div class="url-input-row">
+                <input type="text" id="sandbox-headline-input" class="clay-input"
+                  placeholder="Type or paste any live claim to test newly built model..."
+                  value="Breaking: High-energy particle collisions unveil unprecedented quantum resonance">
+                <button type="button" class="clay-btn-primary" onclick="testRealtimeModelPrediction()">Test Model
+                  🚀</button>
+              </div>
+              <div id="sandbox-result-box" class="mt-2" style="display: none;"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 7: MONGODB DATABASE EXPLORER -->
+      <section id="view-database" class="tab-content">
+        <div class="clay-card">
+          <!-- Database Header & Stats -->
+          <div class="card-title-row">
+            <div>
+              <h2 class="clay-card-title">MongoDB Live Database Explorer</h2>
+              <p class="clay-card-desc">Inspect, filter, search, and manage persistent database records for predictions,
+                AI forensics, and training telemetry.</p>
+            </div>
+            <div class="flex-center-gap8">
+              <button type="button" class="clay-btn-info-sm" onclick="openQuickInfoPopup('database')">ℹ️ How It
+                Works</button>
+              <button class="clay-btn-sm" onclick="openManualRecordModal()">➕ New Record</button>
+              <button class="clay-btn-sm" onclick="refreshDatabaseRecords()">🔄 Refresh DB</button>
+            </div>
+          </div>
+
+          <!-- DB Telemetry Cards -->
+          <div class="db-telemetry-grid mt-2">
+            <div class="db-stat-tile clay-inset">
+              <span class="db-stat-lbl">Database Connection</span>
+              <strong class="db-stat-val text-success" id="db-health-status">Checking...</strong>
+            </div>
+            <div class="db-stat-tile clay-inset">
+              <span class="db-stat-lbl">Database Name</span>
+              <strong class="db-stat-val font-mono" id="db-active-name">veritas_db</strong>
+            </div>
+            <div class="db-stat-tile clay-inset">
+              <span class="db-stat-lbl">Predictions Dossiers</span>
+              <strong class="db-stat-val font-mono" id="db-count-predictions">0</strong>
+            </div>
+            <div class="db-stat-tile clay-inset">
+              <span class="db-stat-lbl">AI Forensics Scans</span>
+              <strong class="db-stat-val font-mono" id="db-count-ai-scans">0</strong>
+            </div>
+            <div class="db-stat-tile clay-inset">
+              <span class="db-stat-lbl">Live Stream Samples</span>
+              <strong class="db-stat-val font-mono" id="db-count-rt-samples">0</strong>
+            </div>
+          </div>
+
+          <!-- Collection Selector & Toolbar -->
+          <div class="db-toolbar mt-3">
+            <div class="db-coll-tabs">
+              <button type="button" class="db-tab-pill active" id="dbtab-predictions"
+                onclick="switchDbCollection('predictions')">🛡️ Predictions Dossier</button>
+              <button type="button" class="db-tab-pill" id="dbtab-ai_scans" onclick="switchDbCollection('ai_scans')">🔬
+                AI Forensics Scans</button>
+              <button type="button" class="db-tab-pill" id="dbtab-realtime_samples"
+                onclick="switchDbCollection('realtime_samples')">⚡ Real-Time Samples</button>
+            </div>
+
+            <div class="db-search-row">
+              <input type="text" id="db-search-input" class="clay-input"
+                placeholder="Search records by title, source, or format..." oninput="onDbSearchChange()">
+              <select id="db-label-filter" class="clay-input" onchange="onDbSearchChange()">
+                <option value="all">All Labels</option>
+                <option value="fake">Fake News Only</option>
+                <option value="real">Real News Only</option>
+                <option value="ai_generated">AI Generated Only</option>
+                <option value="human_authentic">Human Camera Only</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Records Table -->
+          <div class="db-table-container clay-inset mt-3">
+            <table class="clay-table" id="db-records-table">
+              <thead>
+                <tr>
+                  <th>ID / Time</th>
+                  <th>Headline / Subject</th>
+                  <th>Input Format</th>
+                  <th>Verdict</th>
+                  <th>Confidence</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="db-table-body">
+                <tr>
+                  <td colspan="6" class="text-dim text-center py-4">Loading MongoDB records...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="flex-between mt-3 text-dim" style="font-size: 0.8rem;">
+            <span id="db-records-showing-text">Showing records</span>
+            <span id="db-source-indicator" class="font-mono">Storage: MongoDB</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 8: AUTOML & BENCHMARK HUB -->
+      <section id="view-automl" class="tab-content">
+        <div class="grid-2col">
+          <!-- Leaderboard -->
+          <div class="clay-card">
+            <div class="card-title-row">
+              <div>
+                <h2 class="clay-card-title">AutoML Candidate Leaderboard</h2>
+                <p class="clay-card-desc">5-Architecture Offline Model Selection Benchmark</p>
+              </div>
+              <div class="flex-center-gap8">
+                <button type="button" class="clay-btn-info-sm" onclick="openQuickInfoPopup('automl')">ℹ️ How It
+                  Works</button>
+                <span class="clay-tag-success">XGBoost Fusion Winner</span>
+              </div>
+            </div>
+            <table class="clay-table" id="automl-table">
+              <thead>
+                <tr>
+                  <th>Candidate Architecture</th>
+                  <th>Val Acc</th>
+                  <th>Macro F1</th>
+                  <th>ROC-AUC</th>
+                  <th>Train Time</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+
+          <!-- Multimodal Benchmarks Comparison -->
+          <div class="clay-card">
+            <div class="card-title-row">
+              <div>
+                <h2 class="clay-card-title">Ablation & Baseline Comparisons</h2>
+                <p class="clay-card-desc">Cross-modal ablation on Fakeddit test split (5,000 samples)</p>
+              </div>
+            </div>
+            <table class="clay-table" id="benchmark-table">
+              <thead>
+                <tr>
+                  <th>Model / Ablation</th>
+                  <th>Accuracy</th>
+                  <th>Macro F1</th>
+                  <th>ROC-AUC</th>
+                  <th>PR-AUC</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Global SHAP Explanations -->
+        <div class="clay-card mt-3">
+          <div class="card-title-row">
+            <div>
+              <h2 class="clay-card-title">Global Feature Importance (SHAP TreeExplainer)</h2>
+              <p class="clay-card-desc">Mean Absolute Shapley values across 913 multimodal fusion dimensions</p>
+            </div>
+          </div>
+          <div id="global-shap-chart" class="global-shap-stack"></div>
+        </div>
+      </section>
+
+      <!-- TAB 9: ENTERPRISE BATCH FORENSIC AUDIT (NEW FEATURE) -->
+      <section id="view-batch" class="tab-content">
+        <div class="grid-2col">
+          <!-- Batch Ingestion Controller -->
+          <div class="clay-card">
+            <div class="card-title-row">
+              <div>
+                <h2 class="clay-card-title">Multi-Article Batch Forensic Audit</h2>
+                <p class="clay-card-desc">Execute concurrent multimodal veracity scans across multi-line text feeds or
+                  bulk CSV uploads.</p>
+              </div>
+              <div class="flex-center-gap8">
+                <button type="button" class="clay-btn-info-sm" onclick="openQuickInfoPopup('batch')">ℹ️ How It
+                  Works</button>
+                <button type="button" class="clay-btn-sm" onclick="loadRandomBatchSample()">🎲 Random Sample</button>
+              </div>
+            </div>
+
+            <!-- Ingestion Method Tabs -->
+            <div class="format-pills mt-2">
+              <button type="button" class="format-pill active" id="batch-fmt-text" onclick="setBatchFormat('text')">✍️
+                Multi-Line Headlines</button>
+              <button type="button" class="format-pill" id="batch-fmt-csv" onclick="setBatchFormat('csv')">📁 CSV
+                Dataset Upload</button>
+            </div>
+
+            <!-- Text Mode Input -->
+            <div id="batch-text-panel" class="mt-3">
+              <label class="clay-label">Paste Headlines (One per line, up to 30 items):</label>
+              <textarea id="batch-text-input" class="clay-input font-mono" rows="8"
+                placeholder="Enter headline 1...&#10;Enter headline 2...&#10;Enter headline 3...">BREAKING: Global Banking Outage Triggers Emergency National Asset Freeze as ATMs Lock Worldwide
+NASA Perseverance Rover Drills New Core Sample from Jezero Crater Delta
+SHOCKING: Secret Miracle Herb Reverses Cellular Aging in 30 Days (Doctors Banned This)
+Federal Reserve Holds Benchmark Interest Rate Steady Amid Moderate Economic Expansion</textarea>
+            </div>
+
+            <!-- CSV Mode Input -->
+            <div id="batch-csv-panel" class="mt-3" style="display: none;">
+              <div class="image-drop-clay" onclick="document.getElementById('batch-csv-file').click()">
+                <input type="file" id="batch-csv-file" accept=".csv" style="display: none;"
+                  onchange="handleBatchCsvSelect(event)">
+                <div class="drop-icon">📊</div>
+                <p id="batch-csv-label">Click or drag & drop CSV file (columns: headline/clean_title, score, comments)
+                </p>
+                <span class="text-dim">Supports Reddit/Fakeddit CSV exports</span>
+              </div>
+            </div>
+
+            <button type="button" class="clay-btn-primary btn-block mt-3" id="btn-run-batch" onclick="runBatchAudit()">
+              <span id="batch-btn-text">🚀 Execute Concurrent Batch Forensic Audit</span>
+              <span id="batch-btn-spinner" class="spinner" style="display: none;"></span>
+            </button>
+          </div>
+
+          <!-- Batch Metrics & Threat Matrix Summary -->
+          <div class="clay-card">
+            <div class="card-title-row">
+              <div>
+                <h2 class="clay-card-title">Threat Matrix & Batch Telemetry</h2>
+                <p class="clay-card-desc">Real-time statistical distribution and risk stratification.</p>
+              </div>
+              <span id="batch-status-badge" class="clay-tag-accent">Ready for Ingestion</span>
+            </div>
+
+            <!-- 4 KPI Cards -->
+            <div class="metrics-clay-grid mt-2">
+              <div class="metric-card clay-inset">
+                <span class="metric-num" id="batch-kpi-total">0</span>
+                <span class="metric-label">Articles Audited</span>
+              </div>
+              <div class="metric-card clay-inset">
+                <span class="metric-num text-danger" id="batch-kpi-fake-pct">0.0%</span>
+                <span class="metric-label">Fake News %</span>
+              </div>
+              <div class="metric-card clay-inset">
+                <span class="metric-num" style="color: var(--amber);" id="batch-kpi-high-risk">0</span>
+                <span class="metric-label">High-Risk Threats</span>
+              </div>
+              <div class="metric-card clay-inset">
+                <span class="metric-num text-success" id="batch-kpi-speed">0 /s</span>
+                <span class="metric-label">Throughput Speed</span>
+              </div>
+            </div>
+
+            <!-- Export Buttons -->
+            <div class="flex-between mt-3" style="flex-wrap: wrap; gap: 8px;">
+              <span class="text-dim" style="font-size: 0.8rem;">Export Dossier Data:</span>
+              <div style="display: flex; gap: 8px;">
+                <button type="button" class="clay-btn-sm" onclick="exportBatchCsv()">📥 Export CSV</button>
+                <button type="button" class="clay-btn-sm" onclick="exportBatchJson()">📋 Export JSON</button>
+                <button type="button" class="clay-btn-sm" onclick="printBatchReport()">🖨️ Print Summary</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Full Interactive Batch Results Table -->
+        <div class="clay-card mt-3" id="batch-table-card">
+          <div class="card-title-row">
+            <div>
+              <h2 class="clay-card-title">Batch Audit Intelligence Matrix</h2>
+              <p class="clay-card-desc">Interactive tabular breakdown with per-item virality, sensationalism, and risk
+                tags.</p>
+            </div>
+            <div style="display: flex; gap: 10px;">
+              <select id="batch-filter-verdict" class="clay-input"
+                style="width: 140px; padding: 4px 8px; font-size: 0.8rem;" onchange="filterBatchTable()">
+                <option value="all">All Verdicts</option>
+                <option value="fake">Fake News Only</option>
+                <option value="real">Authentic Only</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="db-table-container clay-inset mt-2" style="max-height: 480px;">
+            <table class="clay-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Article Headline / Claim</th>
+                  <th>Veracity Verdict</th>
+                  <th>Fake Prob</th>
+                  <th>Sensationalism</th>
+                  <th>Virality Threat</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="batch-table-body">
+                <tr>
+                  <td colspan="7" class="text-dim text-center py-4">No batch audited yet. Ingest articles above to
+                    begin.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 10: VIRALITY & THREAT PROPAGATION SIMULATOR (NEW FEATURE) -->
+      <section id="view-virality" class="tab-content">
+        <div class="grid-2col">
+          <!-- Simulation Parameters -->
+          <div class="clay-card">
+            <div class="card-title-row">
+              <div>
+                <h2 class="clay-card-title">Misinformation Propagation Simulator</h2>
+                <p class="clay-card-desc">Model epidemiological diffusion, social reproduction rate (R0), and viral
+                  amplification risk.</p>
+              </div>
+              <div class="flex-center-gap8">
+                <button type="button" class="clay-btn-info-sm" onclick="openQuickInfoPopup('virality')">ℹ️ How It
+                  Works</button>
+                <button type="button" class="clay-btn-sm" onclick="loadRandomViralitySample()">🎲 Random Sample</button>
+              </div>
+            </div>
+
+            <form id="virality-form" onsubmit="handleViralitySubmit(event)" class="mt-2">
+              <div class="form-group">
+                <label class="clay-label">Target News Headline / Claim</label>
+                <textarea id="virality-headline" class="clay-input" rows="3" placeholder="Enter headline to simulate..."
+                  required>BREAKING: Global Banking Outage Triggers Emergency National Asset Freeze as ATMs Lock Worldwide</textarea>
+              </div>
+
+              <div class="grid-2col-gap10 mt-2">
+                <div>
+                  <label class="clay-label">Assessed Fake Probability (0.0 - 1.0)</label>
+                  <input type="number" id="virality-fake-prob" class="clay-input font-mono" min="0.0" max="1.0"
+                    step="0.01" value="0.88">
+                </div>
+                <div>
+                  <label class="clay-label">Social Engagement Upvotes / Score</label>
+                  <input type="number" id="virality-score" class="clay-input font-mono" min="1" max="100000"
+                    value="4200">
+                </div>
+              </div>
+
+              <div class="grid-2col-gap10 mt-2">
+                <div>
+                  <label class="clay-label">Comment Velocity</label>
+                  <input type="number" id="virality-comments" class="clay-input font-mono" min="0" max="20000"
+                    value="850">
+                </div>
+                <div>
+                  <label class="clay-label">Upvote Ratio (Consensus vs Controversy)</label>
+                  <input type="number" id="virality-upvote-ratio" class="clay-input font-mono" min="0.1" max="1.0"
+                    step="0.01" value="0.48">
+                </div>
+              </div>
+
+              <div class="form-group mt-2">
+                <label class="clay-label" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                  <input type="checkbox" id="virality-has-image" checked>
+                  <span>Post includes visual media (1.35x virality multiplier)</span>
+                </label>
+              </div>
+
+              <button type="submit" class="clay-btn-primary btn-block mt-3" id="btn-run-virality">
+                <span>📈 Compute Viral Trajectory & Mitigation Protocol</span>
+              </button>
+            </form>
+          </div>
+
+          <!-- Simulation Outputs -->
+          <div class="clay-card" id="virality-results-card">
+            <div class="card-title-row">
+              <div>
+                <h2 class="clay-card-title">Diffusion & Threat Assessment</h2>
+                <p class="clay-card-desc">Simulated social velocity, reach forecast, and containment priorities.</p>
+              </div>
+            </div>
+
+            <div id="virality-initial-state" class="clay-placeholder">
+              <div class="ai-scan-icon">📡</div>
+              <h3>Ready to Simulate</h3>
+              <p>Execute simulation to model R0 contagion rate, peak 24h viral reach, bot amplification probability, and
+                recommended community counter-measures.</p>
+            </div>
+
+            <div id="virality-output-box" style="display: none;">
+              <!-- Severity Banner -->
+              <div id="virality-severity-banner" class="ai-verdict-clay" style="border-left: 6px solid var(--rose);">
+                <div>
+                  <span class="verdict-sub">Viral Threat Classification</span>
+                  <h3 id="virality-severity-text" class="verdict-heading" style="color: var(--rose);">CRITICAL SPREAD
+                  </h3>
+                  <span id="virality-takedown-badge" class="badge-source mt-1" style="display: inline-block;">P1 -
+                    Moderation Quarantine</span>
+                </div>
+                <div class="text-right">
+                  <span id="virality-score-val" class="conf-large">89.4</span>
+                  <span class="conf-lbl">Virality Threat Index</span>
+                </div>
+              </div>
+
+              <!-- Metrics Stack -->
+              <div class="metrics-clay-grid mt-3">
+                <div class="metric-card clay-inset">
+                  <span class="metric-num" style="color: var(--cyan);" id="virality-r0-val">2.85</span>
+                  <span class="metric-label">Contagion Factor (R0)</span>
+                </div>
+                <div class="metric-card clay-inset">
+                  <span class="metric-num" style="color: var(--rose);" id="virality-reach-val">74,500</span>
+                  <span class="metric-label">Est. Peak 24h Reach</span>
+                </div>
+                <div class="metric-card clay-inset">
+                  <span class="metric-num" style="color: var(--amber);" id="virality-bot-val">84.2%</span>
+                  <span class="metric-label">Bot Amplification Risk</span>
+                </div>
+                <div class="metric-card clay-inset">
+                  <span class="metric-num" style="color: var(--purple);" id="virality-controversy-val">72.0</span>
+                  <span class="metric-label">Controversy Index</span>
+                </div>
+              </div>
+
+              <!-- Automated Community Note & Counter-Narrative -->
+              <h4 class="sub-heading mt-3">Automated Counter-Disinformation Narrative (Community Note)</h4>
+              <div class="flags-box clay-inset">
+                <div class="flex-between">
+                  <span class="text-dim" style="font-size: 0.75rem;">Algorithmic Fact-Check Debunk:</span>
+                  <button type="button" class="clay-btn-sm" onclick="copyCommunityNote()">📋 Copy Note</button>
+                </div>
+                <p id="virality-community-note" class="mt-2 text-main font-sans"
+                  style="font-size: 0.88rem; line-height: 1.5;"></p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 11: LINGUISTIC NLP & CLICKBAIT SCANNER (NEW FEATURE) -->
+      <section id="view-linguistics" class="tab-content">
+        <div class="grid-2col">
+          <!-- Text Input -->
+          <div class="clay-card">
+            <div class="card-title-row">
+              <div>
+                <h2 class="clay-card-title">Linguistic NLP & Sensationalism Scanner</h2>
+                <p class="clay-card-desc">Evaluate emotional manipulation patterns, cognitive bias hooks, clickbait
+                  rhetoric, and objective rewrites.</p>
+              </div>
+              <div class="flex-center-gap8">
+                <button type="button" class="clay-btn-info-sm" onclick="openQuickInfoPopup('linguistics')">ℹ️ How It
+                  Works</button>
+                <button type="button" class="clay-btn-sm" onclick="loadRandomLinguisticsSample()">🎲 Random
+                  Sample</button>
+              </div>
+            </div>
+
+            <form id="linguistics-form" onsubmit="handleLinguisticsSubmit(event)" class="mt-2">
+              <div class="form-group">
+                <label class="clay-label">News Headline or Text Snippet</label>
+                <textarea id="linguistics-text-input" class="clay-input" rows="4"
+                  placeholder="Enter headline or article snippet to inspect..."
+                  required>SHOCKING TRUTH: You Won't Believe What Insiders Just Revealed About the Secret Food Crisis That Will Blow Your Mind!</textarea>
+              </div>
+
+              <button type="submit" class="clay-btn-primary btn-block mt-3" id="btn-run-linguistics">
+                <span>🔬 Analyze Textual Forensics & Biases</span>
+              </button>
+            </form>
+          </div>
+
+          <!-- Linguistic Forensics Report -->
+          <div class="clay-card" id="linguistics-results-card">
+            <div class="card-title-row">
+              <div>
+                <h2 class="clay-card-title">Cognitive & Rhetoric Profile</h2>
+                <p class="clay-card-desc">Sensationalism indices, emotional triggers, and objective framing.</p>
+              </div>
+            </div>
+
+            <div id="linguistics-initial-state" class="clay-placeholder">
+              <div class="ai-scan-icon">📝</div>
+              <h3>Ready for Linguistic Audit</h3>
+              <p>Scan text to identify fear/anger triggers, authority exploitation, hyperbole density, and view an AI
+                neutral rewrite.</p>
+            </div>
+
+            <div id="linguistics-output-box" style="display: none;">
+              <!-- Sensationalism & Clickbait Scores -->
+              <div class="dual-bars">
+                <div class="dual-bar-item">
+                  <div class="flex-between">
+                    <span>Sensationalism Rating:</span>
+                    <strong id="ling-sensationalism-val">82.5%</strong>
+                  </div>
+                  <div class="clay-bar-track">
+                    <div id="ling-sensationalism-bar" class="clay-bar-fill bg-danger"></div>
+                  </div>
+                </div>
+                <div class="dual-bar-item">
+                  <div class="flex-between">
+                    <span>Clickbait Propensity:</span>
+                    <strong id="ling-clickbait-val">75.0%</strong>
+                  </div>
+                  <div class="clay-bar-track">
+                    <div id="ling-clickbait-bar" class="clay-bar-fill bg-warning"></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Subjectivity vs Objectivity Balance -->
+              <div class="mt-3">
+                <div class="flex-between font-mono" style="font-size: 0.8rem;">
+                  <span class="text-success">Objective: <strong id="ling-objectivity-val">25.0%</strong></span>
+                  <span class="text-danger">Subjective: <strong id="ling-subjectivity-val">75.0%</strong></span>
+                </div>
+                <div class="clay-bar-track mt-1">
+                  <div id="ling-obj-bar" class="clay-bar-fill bg-info"></div>
+                </div>
+              </div>
+
+              <!-- Emotional Triggers Stack -->
+              <h4 class="sub-heading mt-3">Emotional & Psychological Triggers</h4>
+              <div class="metrics-clay-grid" id="ling-triggers-grid"></div>
+
+              <!-- AI Objective Neutral Rewrite -->
+              <h4 class="sub-heading mt-3">AI Objective Neutral Headline Rewrite</h4>
+              <div class="flags-box clay-inset" style="border-left: 4px solid var(--emerald);">
+                <div class="flex-between">
+                  <span class="text-dim" style="font-size: 0.75rem;">Journalistic De-Biased Framing:</span>
+                  <button type="button" class="clay-btn-sm" onclick="copyNeutralRewrite()">📋 Copy Rewrite</button>
+                </div>
+                <p id="ling-neutral-rewrite" class="mt-2 text-main font-sans"
+                  style="font-size: 0.95rem; font-weight: 500;"></p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 12: SYSTEM & HARDWARE TELEMETRY HUD (NEW FEATURE) -->
+      <section id="view-telemetry" class="tab-content">
+        <div class="clay-card">
+          <div class="card-title-row">
+            <div>
+              <h2 class="clay-card-title">🖥️ Veritas Hardware & System Telemetry HUD</h2>
+              <p class="clay-card-desc">Real-time compute infrastructure metrics, active models in memory, and process
+                health.</p>
+            </div>
+            <div class="flex-center-gap8">
+              <button type="button" class="clay-btn-info-sm" onclick="openQuickInfoPopup('telemetry')">ℹ️ How It
+                Works</button>
+              <button type="button" class="clay-btn-primary" onclick="loadSystemTelemetry()">🔄 Refresh
+                Diagnostics</button>
+            </div>
+          </div>
+
+          <!-- Live Gauges Grid -->
+          <div class="metrics-clay-grid mt-3">
+            <div class="metric-card clay-inset">
+              <span class="metric-num" style="color: var(--cyan);" id="telem-cpu-val">0%</span>
+              <span class="metric-label" id="telem-cpu-sub">CPU Utilization</span>
+            </div>
+            <div class="metric-card clay-inset">
+              <span class="metric-num" style="color: var(--emerald);" id="telem-ram-val">0%</span>
+              <span class="metric-label" id="telem-ram-sub">RAM Usage</span>
+            </div>
+            <div class="metric-card clay-inset">
+              <span class="metric-num" style="color: var(--purple);" id="telem-device-val">CPU</span>
+              <span class="metric-label" id="telem-device-sub">PyTorch Backend</span>
+            </div>
+            <div class="metric-card clay-inset">
+              <span class="metric-num" style="color: var(--amber);" id="telem-uptime-val">00:00:00</span>
+              <span class="metric-label">Server Uptime</span>
+            </div>
+          </div>
+
+          <!-- Active Neural & ML Model Inventory -->
+          <div class="clay-card mt-3" style="background: rgba(10, 14, 26, 0.4);">
+            <h4 class="sub-heading">Active In-Memory Neural & Tabular Model Architecture Stack</h4>
+            <div id="telem-models-list" class="flags-box clay-inset mt-2">
+              <ul class="flags-list" id="telem-models-ul">
+                <li>Loading active models stack...</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- App Footer -->
+      <footer class="app-footer">
+
+        <p>Veritas Multimodal Intelligence Suite &bull; Explainable Fake News Detection &bull; Synthetic Media Forensics
+          &bull; MongoDB Real-Time Hub</p>
+      </footer>
+    </main>
+  </div>
+
+  <!-- Document JSON Viewer Modal -->
+  <div id="json-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-clay-box modal-lg">
+      <div class="flex-between">
+        <h3 class="clay-card-title">Document JSON Inspector</h3>
+        <button class="btn-close" onclick="closeJsonModal()">✕</button>
+      </div>
+      <pre class="json-code-box font-mono mt-3" id="json-modal-content"></pre>
+      <div class="modal-actions mt-3">
+        <button type="button" class="clay-btn-sm" onclick="copyJsonToClipboard()">📋 Copy JSON</button>
+        <button type="button" class="clay-btn-primary" onclick="closeJsonModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dataset Schema Dictionary Modal -->
+  <div id="schema-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-clay-box modal-lg">
+      <div class="flex-between">
+        <h3 class="clay-card-title">Fakeddit Multimodal Schema Dictionary</h3>
+        <button class="btn-close" onclick="closeSchemaModal()">✕</button>
+      </div>
+      <div class="db-table-container clay-inset mt-3" style="max-height: 350px;">
+        <table class="clay-table">
+          <thead>
+            <tr>
+              <th>Field Name</th>
+              <th>Data Type</th>
+              <th>Semantic Role / Description</th>
+            </tr>
+          </thead>
+          <tbody id="schema-table-body"></tbody>
+        </table>
+      </div>
+      <div class="modal-actions mt-3">
+        <button type="button" class="clay-btn-primary" onclick="closeSchemaModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Manual Record Creation Modal -->
+  <div id="manual-record-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-clay-box">
+      <div class="flex-between">
+        <h3 class="clay-card-title">Insert Record into Database</h3>
+        <button class="btn-close" onclick="closeManualRecordModal()">✕</button>
+      </div>
+      <form id="manual-db-form" onsubmit="handleManualDbSubmit(event)" class="mt-3">
+        <div class="form-group">
+          <label class="clay-label">Headline / Subject Claim</label>
+          <input type="text" id="manual-db-headline" class="clay-input" placeholder="Claim text..." required>
+        </div>
+        <div class="grid-2col-gap10">
+          <div>
+            <label class="clay-label">Classification Verdict</label>
+            <select id="manual-db-verdict" class="clay-input">
+              <option value="Authentic News">Authentic News</option>
+              <option value="Fake News / Misinformation">Fake News / Misinformation</option>
+            </select>
+          </div>
+          <div>
+            <label class="clay-label">Confidence Score</label>
+            <input type="number" id="manual-db-conf" class="clay-input" min="0.5" max="1.0" step="0.01" value="0.92">
+          </div>
+        </div>
+        <div class="form-group mt-2">
+          <label class="clay-label">Source Attribution</label>
+          <input type="text" id="manual-db-source" class="clay-input" value="Direct Database Submission">
+        </div>
+        <div class="modal-actions mt-3">
+          <button type="button" class="clay-btn-secondary" onclick="closeManualRecordModal()">Cancel</button>
+          <button type="submit" class="clay-btn-primary">Insert Record 💾</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- System Settings Modal (Gemini + MongoDB) -->
+  <div id="settings-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-clay-box modal-lg">
+      <div class="flex-between">
+        <h3 class="clay-card-title">⚙️ API & Database Settings</h3>
+        <button class="btn-close" onclick="closeSettingsModal()">✕</button>
+      </div>
+
+      <!-- Settings Tabs -->
+      <div class="format-pills mt-3">
+        <button type="button" class="format-pill active" id="set-tab-mongo" onclick="switchSettingsSubTab('mongo')">🗄️
+          MongoDB Database</button>
+        <button type="button" class="format-pill" id="set-tab-gemini" onclick="switchSettingsSubTab('gemini')">🤖 Google
+          Gemini AI</button>
+      </div>
+
+      <!-- MongoDB Settings Panel -->
+      <div id="set-panel-mongo" class="mt-3">
+        <p class="clay-card-desc mb-2">Connect to a local MongoDB server or a remote MongoDB Atlas cluster. Stores
+          real-time prediction dossiers, AI forensic scans, and live training stream samples.</p>
+        <div class="form-group">
+          <label class="clay-label">MongoDB Connection URI</label>
+          <input type="text" id="mongodb-uri-input" class="clay-input font-mono"
+            placeholder="mongodb://localhost:27017/veritas_db or mongodb+srv://user:pass@cluster.mongodb.net/veritas_db">
+        </div>
+        <div class="form-group mt-2">
+          <label class="clay-label">Database Name</label>
+          <input type="text" id="mongodb-dbname-input" class="clay-input font-mono" value="veritas_db">
+        </div>
+        <div id="mongo-verify-status" class="mt-2 font-mono" style="font-size: 0.8rem;"></div>
+        <div class="modal-actions mt-3">
+          <button type="button" class="clay-btn-primary" onclick="saveAndVerifyMongoDB()">Connect & Verify MongoDB
+            🗄️</button>
+        </div>
+      </div>
+
+      <!-- Gemini AI Settings Panel -->
+      <div id="set-panel-gemini" class="mt-3" style="display: none;">
+        <p class="clay-card-desc mb-2">Enter your Google Gemini API key to enable live web citations, breaking news
+          debunking, and online conversational reasoning.</p>
+        <div class="form-group">
+          <label class="clay-label">Google Gemini API Key</label>
+          <input type="password" id="gemini-key-input" class="clay-input font-mono" placeholder="AIzaSy...">
+        </div>
+        <div class="form-group mt-2" id="model-select-group" style="display: none;">
+          <label class="clay-label">Discovered Model (ModelService)</label>
+          <select id="gemini-model-select" class="clay-input font-mono" onchange="onModelSelectChange()"></select>
+        </div>
+        <div id="key-verify-status" class="mt-2 font-mono" style="font-size: 0.8rem;"></div>
+        <div class="modal-actions mt-3">
+          <button type="button" class="clay-btn-primary" onclick="saveAndVerifyKey()">Test & Save Key 🔑</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cryptographic Forensic Dossier Modal (NEW FEATURE) -->
+  <div id="dossier-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-clay-box modal-lg" id="dossier-printable-area"
+      style="max-width: 820px; border: 1px solid var(--border-accent);">
+      <div class="flex-between">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div class="brand-clay-icon" style="width: 36px; height: 36px;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+              <path d="m9 12 2 2 4-4" />
+            </svg>
+          </div>
+          <div>
+            <h3 class="clay-card-title" style="font-size: 1.15rem; margin-bottom: 2px;">Official Forensic Intelligence
+              Dossier</h3>
+            <span class="text-dim font-mono" style="font-size: 0.72rem;">ISO/IEC 27037 Tamper-Evident Digital Forensics
+              Standard</span>
+          </div>
+        </div>
+        <button class="btn-close" onclick="closeDossierModal()">✕</button>
+      </div>
+
+      <div class="flags-box clay-inset mt-3"
+        style="background: rgba(15, 23, 42, 0.85); border-left: 4px solid var(--accent);">
+        <div class="grid-2col-gap10 font-mono" style="font-size: 0.78rem;">
+          <div>Case ID: <strong id="dossier-case-id" class="text-main">VRTS-SCAN-9042</strong></div>
+          <div>Timestamp: <strong id="dossier-timestamp" class="text-main">2026-10-11 00:00:00 UTC</strong></div>
+          <div style="grid-column: span 2; word-break: break-all;">
+            SHA-256 Hash: <strong id="dossier-hash" class="text-main" style="color: var(--cyan);"></strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-3">
+        <label class="clay-label">Claim Under Investigation:</label>
+        <div class="clay-inset p-3 text-main font-sans" id="dossier-headline"
+          style="font-size: 0.95rem; font-weight: 500; border-radius: var(--radius-sm); background: rgba(7, 9, 19, 0.6);">
+        </div>
+      </div>
+
+      <div class="grid-2col-gap10 mt-3">
+        <div class="metric-card clay-inset">
+          <span class="metric-num" id="dossier-verdict" style="font-size: 1.25rem;">AUTHENTIC NEWS</span>
+          <span class="metric-label">Adjudicated Veracity Verdict</span>
+        </div>
+        <div class="metric-card clay-inset">
+          <span class="metric-num text-success" id="dossier-confidence" style="font-size: 1.25rem;">92.5%</span>
+          <span class="metric-label">Model Confidence Score</span>
+        </div>
+      </div>
+
+      <div class="mt-3">
+        <label class="clay-label">Forensic Evidence & Attributions:</label>
+        <p id="dossier-evidence" class="text-main font-sans mt-1"
+          style="font-size: 0.85rem; line-height: 1.5; color: var(--text-muted);"></p>
+      </div>
+
+      <div class="flex-between mt-3 text-dim font-mono"
+        style="font-size: 0.7rem; border-top: 1px solid var(--border-glass); padding-top: 10px;">
+        <span>Certified by Veritas Multimodal Pipeline (XGBoost + SHAP + ResNet + MiniLM)</span>
+        <span class="text-success">Tamper-Proof Verification: PASS</span>
+      </div>
+
+      <div class="modal-actions mt-3">
+        <button type="button" class="clay-btn-sm" onclick="copyDossierHash()">📋 Copy SHA-256</button>
+        <button type="button" class="clay-btn-secondary" onclick="downloadResultsAsPDF()">📥 Download Results as
+          PDF</button>
+        <button type="button" class="clay-btn-primary" onclick="closeDossierModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- INSTANT TOAST NOTIFICATION -->
+  <div id="veritas-toast">
+    <span id="toast-icon">ℹ️</span>
+    <span id="toast-text">Notification</span>
+  </div>
+
+  <!-- INSTANT QUICK-FEATURE POPOVER -->
+  <div id="feature-quick-popup" role="dialog" aria-modal="true">
+    <div class="quick-popup-header">
+      <div>
+        <div class="quick-popup-title">
+          <span id="qp-icon">ℹ️</span>
+          <span id="qp-title">Feature Intelligence</span>
+        </div>
+        <div class="quick-popup-tag" id="qp-tag">VERITAS ENGINE</div>
+      </div>
+      <button type="button" class="btn-close" onclick="closeQuickInfoPopup()" aria-label="Close popover">✕</button>
+    </div>
+    <div class="quick-popup-why" id="qp-why">
+      Instant feature intelligence overview.
+    </div>
+    <div class="quick-popup-steps" id="qp-steps"></div>
+    <div class="quick-popup-actions">
+      <button type="button" class="clay-btn-sm"
+        onclick="openFeatureInfoModal(window.currentQuickTab || window.currentActiveTab || 'lab'); closeQuickInfoPopup();">🔬
+        Full Dossier</button>
+      <button type="button" class="clay-btn-primary" style="padding: 5px 16px; font-size: 0.8rem;"
+        onclick="closeQuickInfoPopup()">Got It ⚡</button>
+    </div>
+  </div>
+
+  <!-- INTERACTIVE FORENSIC LOUPE LENS -->
+  <div id="forensic-loupe" class="forensic-loupe-lens">
+    <div class="forensic-loupe-reticle"></div>
+    <div class="forensic-loupe-telemetry" id="loupe-coords">X: 0 Y: 0 | 2.5x ZOOM</div>
+  </div>
+
+  <!-- FLOATING HUD COMMAND TRIGGER -->
+  <button type="button" class="floating-hud-trigger" onclick="openQuickHud()"
+    title="Quick Forensic Command Bar (Ctrl+K)">
+    <span>⚡</span>
+    <span>Quick Tools</span>
+    <span class="kbd-badge" style="background: rgba(0,0,0,0.3); color: white;">Ctrl+K</span>
+  </button>
+
+  <!-- QUICK HUD COMMAND BAR OVERLAY (Ctrl+K) -->
+  <div id="quick-hud-overlay" class="quick-hud-overlay" onclick="if(event.target===this) closeQuickHud()">
+    <div class="quick-hud-box">
+      <div class="quick-hud-input-row">
+        <span style="font-size: 1.2rem;">🔍</span>
+        <input type="text" id="quick-hud-input" class="quick-hud-input"
+          placeholder="Search feature, test a claim, or run action..." oninput="filterQuickHud(this.value)"
+          onkeydown="handleQuickHudKey(event)">
+        <span class="kbd-badge">ESC to close</span>
+      </div>
+      <div class="quick-hud-list" id="quick-hud-list">
+        <div class="quick-hud-item" onclick="switchTab('lab'); closeQuickHud();">
+          <span>🛡️</span>
+          <div style="flex:1;"><strong>Omni-Modal Veracity Lab</strong> <span class="text-dim">— Analyze claim text,
+              image, doc or voice</span></div>
+          <span class="kbd-badge">Tab 1</span>
+        </div>
+        <div class="quick-hud-item" onclick="switchTab('ai-detect'); closeQuickHud();">
+          <span>🔬</span>
+          <div style="flex:1;"><strong>AI Media Forensics (ELA & FFT)</strong> <span class="text-dim">— Detect synthetic
+              / generative imagery</span></div>
+          <span class="kbd-badge">Tab 2</span>
+        </div>
+        <div class="quick-hud-item" onclick="switchTab('chatbot'); closeQuickHud();">
+          <span>💬</span>
+          <div style="flex:1;"><strong>Veritas AI Chatbot</strong> <span class="text-dim">— Conversational verification
+              assistant</span></div>
+          <span class="kbd-badge">Tab 4</span>
+        </div>
+        <div class="quick-hud-item" onclick="toggleTheme(); closeQuickHud();">
+          <span>🌓</span>
+          <div style="flex:1;"><strong>Toggle Theme Mode</strong> <span class="text-dim">— Instant Light / Dark mode
+              switch</span></div>
+          <span class="kbd-badge">Key: T</span>
+        </div>
+        <div class="quick-hud-item" onclick="toggleSound(); closeQuickHud();">
+          <span>🔊</span>
+          <div style="flex:1;"><strong>Toggle Sound FX</strong> <span class="text-dim">— Cybernetic audio
+              feedback</span></div>
+          <span class="kbd-badge">Key: M</span>
+        </div>
+        <div class="quick-hud-item" onclick="openCurrentTabInfo(); closeQuickHud();">
+          <span>ℹ️</span>
+          <div style="flex:1;"><strong>How This Feature Works</strong> <span class="text-dim">— Open intelligence guide
+              for current view</span></div>
+          <span class="kbd-badge">Key: ?</span>
+        </div>
+      </div>
+      <div class="quick-hud-footer">
+        <span>Tip: Press <strong>T</strong> anytime for Theme, <strong>M</strong> for Sound, <strong>?</strong> for
+          Help</span>
+        <span class="font-mono text-dim">VERITAS AI</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- FEATURE GUIDE & HOW IT WORKS MODAL -->
+  <div class="modal-overlay" id="feature-info-modal" style="display: none;"
+    onclick="if(event.target === this) closeFeatureInfoModal()">
+    <div class="modal-clay-box modal-lg" role="dialog" aria-modal="true" aria-labelledby="feature-info-title">
+      <div class="flex-between">
+        <div class="flex-row gap-2" style="align-items: center;">
+          <span id="feature-info-icon" style="font-size: 1.8rem;">ℹ️</span>
+          <div>
+            <h3 class="clay-card-title" id="feature-info-title" style="font-size: 1.25rem; margin-bottom: 2px;">Feature
+              Intelligence Guide</h3>
+            <span class="text-dim font-mono" id="feature-info-tag"
+              style="font-size: 0.75rem; color: var(--accent-light);">Operational Architecture</span>
+          </div>
+        </div>
+        <button type="button" class="btn-close" onclick="closeFeatureInfoModal()"
+          aria-label="Close feature guide">✕</button>
+      </div>
+
+      <div class="feature-guide-box">
+        <div class="feature-guide-title">
+          <span>🎯</span>
+          <span>Why This Feature Is Useful</span>
+        </div>
+        <p class="feature-guide-text" id="feature-info-why"></p>
+      </div>
+
+      <div class="feature-guide-box mt-3">
+        <div class="feature-guide-title">
+          <span>⚙️</span>
+          <span>How It Works Under the Hood</span>
+        </div>
+        <p class="feature-guide-text" id="feature-info-how"></p>
+
+        <div class="feature-guide-steps" id="feature-info-steps">
+          <!-- Populated dynamically via JS -->
+        </div>
+      </div>
+
+      <div class="feature-pro-tip" id="feature-info-protip-box">
+        <span>💡</span>
+        <div>
+          <strong>Forensic Pro Tip:</strong>
+          <span id="feature-info-tip"></span>
+        </div>
+      </div>
+
+      <div class="modal-actions mt-3">
+        <button type="button" class="clay-btn-primary" onclick="closeFeatureInfoModal()">Got It, Let's Analyze</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="/static/app.js?v=5.1"></script>
+
+</body>
+
+</html>

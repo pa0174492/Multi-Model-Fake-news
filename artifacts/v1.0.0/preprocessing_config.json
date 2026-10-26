@@ -1,0 +1,7 @@
+{
+  "text_model": "sentence-transformers/all-MiniLM-L6-v2",
+  "vision_backbone": "resnet18_imagenet",
+  "image_dimension": 224,
+  "prompt_template": "News headline: \"{headline}\". Fact-check assessment and veracity report:",
+  "project_dim": 128
+}

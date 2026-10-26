@@ -1,0 +1,62 @@
+{
+  "project_name": "Toward Explainable Multimodal Fake News Detection: A Fusion of Prompt Learning and Automated Machine Learning",
+  "phase": "Phase 3: Dataset Preparation, Model Training, Evaluation, and Artifact Management",
+  "primary_dataset": "Fakeddit",
+  "dataset_documentation_url": "https://github.com/entitize/Fakeddit",
+  "splits": {
+    "train_source": "data/raw/multimodal_train.tsv",
+    "val_source": "data/raw/multimodal_validate.tsv",
+    "test_source": "data/raw/multimodal_test_public.tsv"
+  },
+  "sample_targets": {
+    "train": 5000,
+    "val": 1000,
+    "test": 1000,
+    "total_target": 7000
+  },
+  "label_schema": {
+    "description": "Fakeddit official label mappings and task-compatible binary mapping for fake news detection",
+    "fakeddit_raw_2_way": {
+      "1": "True / Real content",
+      "0": "Fake / Misinformation"
+    },
+    "fakeddit_raw_3_way": {
+      "0": "True / Real content",
+      "1": "Completely Fabricated content",
+      "2": "Misleading or Manipulated content"
+    },
+    "fakeddit_raw_6_way": {
+      "0": "True",
+      "1": "Satire / Parody",
+      "2": "Misleading Content",
+      "3": "Manipulated Content",
+      "4": "False Connection",
+      "5": "Completely Fabricated / Imposter Content"
+    },
+    "canonical_task_mapping": {
+      "task_name": "Multimodal Fake News Detection",
+      "target_column": "is_fake",
+      "mapping_rule": "is_fake = 1 if fakeddit_2_way_label == 0 else 0",
+      "classes": {
+        "0": "Real News / Genuine",
+        "1": "Fake News / Misinformation"
+      }
+    }
+  },
+  "validation_rules": {
+    "required_columns": [
+      "id",
+      "clean_title",
+      "image_url",
+      "hasImage",
+      "2_way_label",
+      "3_way_label",
+      "6_way_label"
+    ],
+    "min_title_length_chars": 5,
+    "min_title_length_words": 2,
+    "require_valid_image": true,
+    "image_min_dimension": 32,
+    "supported_image_formats": ["JPEG", "PNG", "WEBP", "JPG"]
+  }
+}
