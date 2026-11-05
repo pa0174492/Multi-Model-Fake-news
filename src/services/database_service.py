@@ -157,6 +157,9 @@ class DatabaseService:
                 self.db.predictions.create_index([("headline", pymongo.TEXT)])
                 self.db.ai_scans.create_index([("timestamp", pymongo.DESCENDING)])
                 self.db.realtime_samples.create_index([("timestamp", pymongo.DESCENDING)])
+                self.db.users.create_index([("email", pymongo.ASCENDING)], unique=True)
+                self.db.users.create_index([("role", pymongo.ASCENDING)])
+                self.db.auth_audit_logs.create_index([("timestamp", pymongo.DESCENDING)])
             except Exception as e:
                 logger.warning(f"Index creation warning: {e}")
 

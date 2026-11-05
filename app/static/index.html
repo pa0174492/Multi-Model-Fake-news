@@ -12,7 +12,7 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
     rel="stylesheet">
-  <link rel="stylesheet" href="/static/style.css?v=5.0">
+  <link rel="stylesheet" href="/static/style.css?v=8.0">
   <script>
     (function () {
       try {
@@ -96,41 +96,64 @@
           <span class="nav-pill-active"></span>
         </button>
 
-        <div class="nav-section-label mt-3">DATASETS & STREAMS</div>
+        <!-- ADMIN ONLY SECTION: DATASETS & STREAMS -->
+        <div class="nav-admin-section" id="nav-section-datasets" style="display: none;">
+          <div class="nav-section-label mt-3 flex-between" style="padding-right: 10px;">
+            <span>DATASETS & STREAMS</span>
+            <span class="nav-admin-tag" id="nav-sec-admin-tag">👑 ADMIN</span>
+          </div>
 
-        <button class="nav-item" id="tab-dataset" onclick="switchTab('dataset')">
-          <span class="nav-icon">📁</span>
-          <span class="nav-label">Fakeddit Dataset Explorer</span>
-          <span class="nav-pill-active"></span>
-        </button>
+          <button class="nav-item admin-restricted-nav" id="tab-dataset" onclick="switchTab('dataset')">
+            <span class="nav-icon">📁</span>
+            <span class="nav-label">Fakeddit Dataset Explorer</span>
+            <span class="nav-lock-icon" id="lock-dataset" title="Admin Clearance Required">🔒</span>
+            <span class="nav-pill-active"></span>
+          </button>
 
-        <button class="nav-item" id="tab-model-builder" onclick="switchTab('model-builder')">
-          <span class="nav-icon">⚡</span>
-          <span class="nav-label">Real-Time Model Builder</span>
-          <span class="nav-badge-new">Adaptive</span>
-          <span class="nav-pill-active"></span>
-        </button>
+          <button class="nav-item admin-restricted-nav" id="tab-model-builder" onclick="switchTab('model-builder')">
+            <span class="nav-icon">⚡</span>
+            <span class="nav-label">Real-Time Model Builder</span>
+            <span class="nav-badge-new" id="badge-model-builder">Adaptive</span>
+            <span class="nav-lock-icon" id="lock-model-builder" title="Admin Clearance Required" style="display:none;">🔒</span>
+            <span class="nav-pill-active"></span>
+          </button>
 
-        <button class="nav-item" id="tab-database" onclick="switchTab('database')">
-          <span class="nav-icon">🗄️</span>
-          <span class="nav-label">MongoDB Data Explorer</span>
-          <span class="nav-pill-active"></span>
-        </button>
+          <button class="nav-item admin-restricted-nav" id="tab-database" onclick="switchTab('database')">
+            <span class="nav-icon">🗄️</span>
+            <span class="nav-label">MongoDB Data Explorer</span>
+            <span class="nav-lock-icon" id="lock-database" title="Admin Clearance Required">🔒</span>
+            <span class="nav-pill-active"></span>
+          </button>
 
-        <div class="nav-section-label mt-3">BENCHMARKS & SYSTEM</div>
+          <button class="nav-item admin-restricted-nav" id="tab-access-control" onclick="switchTab('access-control')">
+            <span class="nav-icon">🔐</span>
+            <span class="nav-label">Access Control & IAM</span>
+            <span class="nav-badge-new" id="badge-access-control" style="background: rgba(168, 85, 247, 0.22); color: #d8b4fe;">RBAC</span>
+            <span class="nav-lock-icon" id="lock-access-control" title="Admin Clearance Required" style="display:none;">🔒</span>
+            <span class="nav-pill-active"></span>
+          </button>
+        </div>
 
-        <button class="nav-item" id="tab-automl" onclick="switchTab('automl')">
-          <span class="nav-icon">📊</span>
-          <span class="nav-label">AutoML & Benchmarks</span>
-          <span class="nav-pill-active"></span>
-        </button>
+        <!-- ADMIN ONLY SECTION: BENCHMARKS & SYSTEM -->
+        <div class="nav-admin-section" id="nav-section-benchmarks" style="display: none;">
+          <div class="nav-section-label mt-3 flex-between" style="padding-right: 10px;">
+            <span>BENCHMARKS & SYSTEM</span>
+            <span class="nav-admin-tag">👑 ADMIN</span>
+          </div>
 
-        <button class="nav-item" id="tab-telemetry" onclick="switchTab('telemetry')">
-          <span class="nav-icon">🖥️</span>
-          <span class="nav-label">Hardware & Telemetry</span>
-          <span class="nav-badge-new">Live</span>
-          <span class="nav-pill-active"></span>
-        </button>
+          <button class="nav-item admin-restricted-nav" id="tab-automl" onclick="switchTab('automl')">
+            <span class="nav-icon">📊</span>
+            <span class="nav-label">AutoML & Benchmarks</span>
+            <span class="nav-pill-active"></span>
+          </button>
+
+          <button class="nav-item admin-restricted-nav" id="tab-telemetry" onclick="switchTab('telemetry')">
+            <span class="nav-icon">🖥️</span>
+            <span class="nav-label">Hardware & Telemetry</span>
+            <span class="nav-badge-new">Live</span>
+            <span class="nav-pill-active"></span>
+          </button>
+        </div>
       </nav>
 
       <!-- Sidenav Footer Status Bar -->
@@ -191,6 +214,12 @@
             <span class="theme-label" id="theme-label">Light Mode</span>
           </button>
           <button class="btn-topbar-settings" onclick="openSettingsModal()" title="Settings">⚙️</button>
+          <!-- Active User Clearance & Auth Pill -->
+          <div class="user-auth-pill clay-pill" id="topbar-user-pill" onclick="handleUserPillClick()" title="Manage Account or Switch Clearance">
+            <span class="user-role-badge role-admin" id="topbar-user-role">👑 ADMIN</span>
+            <span class="user-name-lbl" id="topbar-user-name">Administrator</span>
+          </div>
+          <button class="btn-topbar-logout" id="topbar-logout-btn" onclick="handleLogout()" title="Sign Out / Switch User">🚪</button>
         </div>
       </header>
 
@@ -1641,6 +1670,150 @@ Federal Reserve Holds Benchmark Interest Rate Steady Amid Moderate Economic Expa
         </div>
       </section>
 
+      <!-- TAB 13: IDENTITY & ACCESS CONTROL (IAM) HUB (ADMIN ONLY) -->
+      <section id="view-access-control" class="tab-content">
+        <div class="clay-card">
+          <div class="card-title-row">
+            <div>
+              <h2 class="clay-card-title">🔐 Identity & Access Control (IAM) Governance Hub</h2>
+              <p class="clay-card-desc">Manage user clearance levels (Promote to Admin / Demote to User), inspect email verification status, and audit Datasets & Streams access permissions.</p>
+            </div>
+            <div class="flex-center-gap8">
+              <button type="button" class="clay-btn-info-sm" onclick="openQuickInfoPopup('access-control')">ℹ️ How It Works</button>
+              <button type="button" class="clay-btn-sm" onclick="openSettingsModal('smtp')">📧 Email &amp; SMTP Settings</button>
+              <button type="button" class="clay-btn-primary" onclick="loadAccessControlData()">🔄 Refresh IAM Directory</button>
+            </div>
+          </div>
+
+          <!-- IAM Telemetry KPI Cards -->
+          <div class="db-telemetry-grid mt-2">
+            <div class="db-stat-tile clay-inset">
+              <span class="db-stat-lbl">Total Registered Users</span>
+              <strong class="db-stat-val font-mono" id="iam-stat-total">4</strong>
+            </div>
+            <div class="db-stat-tile clay-inset">
+              <span class="db-stat-lbl">Administrators (Full Access)</span>
+              <strong class="db-stat-val font-mono text-cyan" id="iam-stat-admins">2</strong>
+            </div>
+            <div class="db-stat-tile clay-inset">
+              <span class="db-stat-lbl">Standard Users (Restricted)</span>
+              <strong class="db-stat-val font-mono" id="iam-stat-users">2</strong>
+            </div>
+            <div class="db-stat-tile clay-inset">
+              <span class="db-stat-lbl">Email OTP Verified</span>
+              <strong class="db-stat-val font-mono text-success" id="iam-stat-verified">4</strong>
+            </div>
+            <div class="db-stat-tile clay-inset">
+              <span class="db-stat-lbl">Encrypted SMTP Dispatch</span>
+              <strong class="db-stat-val text-success" id="iam-smtp-mode" style="font-size:0.82rem;">🟢 Active</strong>
+            </div>
+          </div>
+
+          <!-- RBAC Policy Matrix Banner -->
+          <div class="rbac-policy-banner clay-inset mt-3">
+            <div class="rbac-policy-col">
+              <div class="rbac-col-header">
+                <span class="user-role-badge role-admin">👑 ADMIN CLEARANCE</span>
+                <span class="text-success font-mono" style="font-size:0.74rem;">Unrestricted Governance</span>
+              </div>
+              <p class="text-dim" style="font-size:0.78rem; margin-top:4px;">
+                Full access to <strong>DATASETS & STREAMS</strong> (Fakeddit 7,000 Dataset Explorer, Real-Time Model Builder, MongoDB Live Data Explorer), <strong>Access Control (Promote/Demote Users)</strong>, and all Forensic Analysis labs.
+              </p>
+            </div>
+            <div class="rbac-policy-col">
+              <div class="rbac-col-header">
+                <span class="user-role-badge role-user">👤 USER CLEARANCE</span>
+                <span class="text-dim font-mono" style="font-size:0.74rem;">Standard Forensic Access</span>
+              </div>
+              <p class="text-dim" style="font-size:0.78rem; margin-top:4px;">
+                Access to Veracity Detector, AI Media Forensics, Batch Audit, Virality Simulator, Linguistic Scanner, Cross-Modal Alignment, and AI Chatbot. <strong>Restricted from Datasets & Streams and IAM Governance.</strong>
+              </p>
+            </div>
+          </div>
+
+          <!-- User Search & Role Filter Toolbar -->
+          <div class="db-toolbar mt-3">
+            <div class="db-coll-tabs">
+              <button type="button" class="db-tab-pill active" id="iamtab-all" onclick="setIamRoleFilter('all')">🌐 All Accounts</button>
+              <button type="button" class="db-tab-pill" id="iamtab-admin" onclick="setIamRoleFilter('admin')">👑 Admins Only</button>
+              <button type="button" class="db-tab-pill" id="iamtab-user" onclick="setIamRoleFilter('user')">👤 Standard Users</button>
+              <button type="button" class="db-tab-pill" id="iamtab-unverified" onclick="setIamRoleFilter('unverified')">⏳ Pending OTP</button>
+            </div>
+
+            <div class="db-search-row">
+              <input type="text" id="iam-search-input" class="clay-input"
+                placeholder="Search user by name, email, or department..." oninput="onIamSearchChange()">
+              <button type="button" class="clay-btn-sm" onclick="openAuthPortal('register')">➕ Register New User via OTP</button>
+            </div>
+          </div>
+
+          <!-- Users & Access Control Table -->
+          <div class="db-table-container clay-inset mt-3">
+            <table class="clay-table" id="iam-users-table">
+              <thead>
+                <tr>
+                  <th>User / Investigator</th>
+                  <th>Department</th>
+                  <th>Email OTP Status</th>
+                  <th>Clearance Role</th>
+                  <th>Datasets & Streams Access</th>
+                  <th>Access Control Actions (Promote / Demote)</th>
+                </tr>
+              </thead>
+              <tbody id="iam-users-tbody">
+                <tr>
+                  <td colspan="6" class="text-dim text-center py-4">Loading IAM user directory...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Bottom 2-Column Grid: Audit Logs & OTP Dispatch Outbox -->
+        <div class="grid-2col mt-3">
+          <!-- Security & Role Elevation Audit Log -->
+          <div class="clay-card">
+            <div class="card-title-row">
+              <div>
+                <h3 class="clay-card-title">🛡️ IAM Security & Role Change Audit Log</h3>
+                <p class="clay-card-desc">Immutable ledger of promotions, demotions, OTP verifications, and logins.</p>
+              </div>
+            </div>
+            <div class="db-table-container clay-inset mt-2" style="max-height: 310px;">
+              <table class="clay-table">
+                <thead>
+                  <tr>
+                    <th>Time</th>
+                    <th>Actor</th>
+                    <th>Event</th>
+                    <th>Target & Details</th>
+                  </tr>
+                </thead>
+                <tbody id="iam-audit-tbody">
+                  <tr>
+                    <td colspan="4" class="text-dim text-center py-4">Loading audit log...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Email OTP Dispatch Outbox & Inspector -->
+          <div class="clay-card">
+            <div class="card-title-row">
+              <div>
+                <h3 class="clay-card-title">📬 Email Security Dispatch Inspector</h3>
+                <p class="clay-card-desc">Live audit log of 6-digit OTP verification codes dispatched via encrypted SMTP.</p>
+              </div>
+              <button type="button" class="clay-btn-sm" onclick="sendQuickTestOtpEmail()">📧 Send Test OTP</button>
+            </div>
+            <div id="iam-outbox-list" class="clay-inset p-3 mt-2" style="max-height: 310px; overflow-y: auto;">
+              <div class="text-dim text-center py-4" style="font-size: 0.82rem;">No OTP emails dispatched in current session yet.</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <!-- App Footer -->
       <footer class="app-footer">
 
@@ -1741,6 +1914,7 @@ Federal Reserve Holds Benchmark Interest Rate Steady Amid Moderate Economic Expa
           MongoDB Database</button>
         <button type="button" class="format-pill" id="set-tab-gemini" onclick="switchSettingsSubTab('gemini')">🤖 Google
           Gemini AI</button>
+        <button type="button" class="format-pill" id="set-tab-smtp" onclick="switchSettingsSubTab('smtp')">📧 Email &amp; SMTP Settings</button>
       </div>
 
       <!-- MongoDB Settings Panel -->
@@ -1778,6 +1952,39 @@ Federal Reserve Holds Benchmark Interest Rate Steady Amid Moderate Economic Expa
         <div id="key-verify-status" class="mt-2 font-mono" style="font-size: 0.8rem;"></div>
         <div class="modal-actions mt-3">
           <button type="button" class="clay-btn-primary" onclick="saveAndVerifyKey()">Test & Save Key 🔑</button>
+        </div>
+      </div>
+
+      <!-- Email & SMTP Settings Panel -->
+      <div id="set-panel-smtp" class="mt-3" style="display: none;">
+        <p class="clay-card-desc mb-2">Configure your SMTP server credentials for secure OTP delivery (e.g. Gmail App Password, SendGrid, Outlook). Live delivery utilizes encrypted SSL/TLS mail dispatch.</p>
+        <div class="grid-2col-gap10">
+          <div class="form-group">
+            <label class="clay-label">SMTP Host</label>
+            <input type="text" id="smtp-host-input" class="clay-input font-mono" value="smtp.gmail.com" placeholder="smtp.gmail.com">
+          </div>
+          <div class="form-group">
+            <label class="clay-label">SMTP Port</label>
+            <input type="number" id="smtp-port-input" class="clay-input font-mono" value="587" placeholder="587">
+          </div>
+        </div>
+        <div class="grid-2col-gap10 mt-2">
+          <div class="form-group">
+            <label class="clay-label">SMTP Email / Username</label>
+            <input type="email" id="smtp-user-input" class="clay-input font-mono" placeholder="your.email@gmail.com">
+          </div>
+          <div class="form-group">
+            <label class="clay-label">SMTP App Password</label>
+            <input type="password" id="smtp-pass-input" class="clay-input font-mono" placeholder="16-char Gmail App Password">
+          </div>
+        </div>
+        <div class="form-group mt-2">
+          <label class="clay-label">Optional Test Recipient Email</label>
+          <input type="email" id="smtp-test-email-input" class="clay-input font-mono" placeholder="Enter email to send a live test OTP upon saving...">
+        </div>
+        <div id="smtp-verify-status" class="mt-2 font-mono" style="font-size: 0.8rem;"></div>
+        <div class="modal-actions mt-3">
+          <button type="button" class="clay-btn-primary" onclick="saveAndTestSmtpSettings()">Save & Test SMTP Dispatch 📧</button>
         </div>
       </div>
     </div>
@@ -2009,8 +2216,495 @@ Federal Reserve Holds Benchmark Interest Rate Steady Amid Moderate Economic Expa
     </div>
   </div>
 
+  <!-- =====================================================================
+       ENTERPRISE SPLIT-SCREEN AUTHENTICATION, EMAIL OTP & RBAC PORTAL
+       ===================================================================== -->
+  <div id="auth-portal-overlay" class="modal-overlay auth-gate-overlay" style="display: none;">
+    <div class="auth-split-shell">
+
+      <!-- LEFT COLUMN: BRAND SHOWCASE, RBAC MATRIX & 1-CLICK DEMO ACCESS -->
+      <div class="auth-showcase-pane">
+        <div class="auth-showcase-glow"></div>
+
+        <div class="auth-showcase-header">
+          <div class="auth-brand-badge">
+            <div class="brand-clay-icon" style="width: 44px; height: 44px;">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                <path d="m9 12 2 2 4-4" />
+              </svg>
+            </div>
+            <div>
+              <div class="auth-brand-eyebrow">VERITAS MULTIMODAL INTELLIGENCE</div>
+              <h2 class="auth-brand-title">Zero-Trust Identity &amp; Clearance Gate</h2>
+            </div>
+          </div>
+          <div class="auth-sec-pills">
+            <span class="auth-sec-pill">📧 Encrypted Email OTP</span>
+            <span class="auth-sec-pill">🔐 PBKDF2-SHA256</span>
+            <span class="auth-sec-pill">🛡️ Dual-Tier RBAC</span>
+          </div>
+        </div>
+
+        <!-- RBAC Clearance Comparison Matrix -->
+        <div class="auth-rbac-matrix">
+          <div class="auth-matrix-title">ROLE-BASED CLEARANCE ARCHITECTURE</div>
+
+          <div class="auth-role-tier-card tier-admin">
+            <div class="flex-between">
+              <span class="user-role-badge role-admin">👑 ADMIN CLEARANCE</span>
+              <span class="auth-tier-status text-success">Full Suite Unlocked</span>
+            </div>
+            <p class="auth-tier-desc">Unrestricted access to <strong>DATASETS &amp; STREAMS</strong> &amp; IAM Governance:</p>
+            <div class="auth-tier-perks">
+              <span>✅ Fakeddit Corpus (7K)</span>
+              <span>✅ Real-Time Model Builder</span>
+              <span>✅ MongoDB Data Explorer</span>
+              <span>✅ Promote / Demote Users</span>
+            </div>
+          </div>
+
+          <div class="auth-role-tier-card tier-user">
+            <div class="flex-between">
+              <span class="user-role-badge role-user">👤 USER CLEARANCE</span>
+              <span class="auth-tier-status text-cyan">Standard Investigator</span>
+            </div>
+            <p class="auth-tier-desc">Access to core AI verification tools (Datasets &amp; Streams locked):</p>
+            <div class="auth-tier-perks">
+              <span>✅ Omni-Modal Veracity Lab</span>
+              <span>✅ AI Forensics &amp; Chatbot</span>
+              <span>🔒 Datasets &amp; Streams</span>
+              <span>🔒 IAM Role Governance</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Instant 1-Click Demo Role Launchers -->
+        <div class="auth-instant-demo-box">
+          <div class="flex-between mb-2">
+            <span class="font-mono" style="font-size: 0.72rem; color: #c4b5fd; font-weight: 800; letter-spacing: 0.05em;">⚡ 1-CLICK INSTANT CLEARANCE SWITCHER</span>
+            <span class="text-dim font-mono" style="font-size: 0.68rem;">Pre-Verified Accounts</span>
+          </div>
+          <div class="auth-demo-grid">
+            <button type="button" class="auth-demo-card demo-admin" onclick="quickDemoLogin('admin')">
+              <div class="auth-demo-card-top">
+                <span class="auth-demo-icon">👑</span>
+                <span class="auth-demo-tag">ADMIN</span>
+              </div>
+              <div class="auth-demo-name">Commander Admin</div>
+              <div class="auth-demo-email font-mono">admin@veritas.ai</div>
+              <div class="auth-demo-sub">Unlocks Datasets, Streams &amp; IAM</div>
+            </button>
+
+            <button type="button" class="auth-demo-card demo-user" onclick="quickDemoLogin('user')">
+              <div class="auth-demo-card-top">
+                <span class="auth-demo-icon">👤</span>
+                <span class="auth-demo-tag">USER</span>
+              </div>
+              <div class="auth-demo-name">Field Analyst</div>
+              <div class="auth-demo-email font-mono">analyst@veritas.ai</div>
+              <div class="auth-demo-sub">Standard Dashboard Only</div>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT COLUMN: MULTI-STEP INTERACTIVE AUTHENTICATION & OTP WORKFLOW -->
+      <div class="auth-interactive-pane">
+        <div class="auth-pane-topbar">
+          <!-- 3-Step Visual Progress Stepper -->
+          <div class="auth-stepper" id="auth-stepper-bar">
+            <div class="auth-step active" id="auth-step-1">
+              <span class="auth-step-num">1</span>
+              <span class="auth-step-lbl">Credentials</span>
+            </div>
+            <div class="auth-step-line"></div>
+            <div class="auth-step" id="auth-step-2">
+              <span class="auth-step-num">2</span>
+              <span class="auth-step-lbl">Email OTP</span>
+            </div>
+            <div class="auth-step-line"></div>
+            <div class="auth-step" id="auth-step-3">
+              <span class="auth-step-num">3</span>
+              <span class="auth-step-lbl">Clearance Active</span>
+            </div>
+          </div>
+          <button type="button" class="btn-close" id="auth-close-btn" onclick="closeAuthPortal()" title="Close Portal">✕</button>
+        </div>
+
+        <!-- Mode Switcher Segmented Control -->
+        <div class="auth-segmented-tabs" id="auth-mode-tabs">
+          <button type="button" class="auth-seg-btn active" id="authtab-login" onclick="switchAuthMode('login')">
+            <span>🔑</span> Sign In
+          </button>
+          <button type="button" class="auth-seg-btn" id="authtab-register" onclick="switchAuthMode('register')">
+            <span>✨</span> Create Account
+          </button>
+          <button type="button" class="auth-seg-btn" id="authtab-otp" onclick="switchAuthMode('otp')" style="display: none;">
+            <span>🛡️</span> Verify OTP
+          </button>
+          <button type="button" class="auth-seg-btn" id="authtab-reset" onclick="switchAuthMode('reset')">
+            <span>🔄</span> Recovery
+          </button>
+        </div>
+
+        <!-- 1. SIGN IN PANEL -->
+        <div id="auth-panel-login" class="auth-form-stage">
+          <div class="auth-stage-heading">
+            <h3>Sign In to Veritas Suite</h3>
+            <p>Enter your investigator credentials or select a demo clearance card on the left.</p>
+          </div>
+
+          <form id="auth-login-form" onsubmit="handleLoginSubmit(event)" autocomplete="on">
+            <div class="auth-field-group">
+              <div class="flex-between">
+                <label class="auth-field-label" for="login-email-input">Official Email Address</label>
+                <div class="auth-quickfill-chips">
+                  <button type="button" class="auth-chip" onclick="fillLoginInputs('admin@veritas.ai', 'Admin@123')">Fill Admin</button>
+                  <button type="button" class="auth-chip" onclick="fillLoginInputs('analyst@veritas.ai', 'User@123')">Fill User</button>
+                </div>
+              </div>
+              <div class="auth-input-wrap">
+                <span class="auth-input-icon">✉️</span>
+                <input type="email" id="login-email-input" class="auth-modern-input font-mono"
+                  placeholder="admin@veritas.ai or your email..." required>
+              </div>
+            </div>
+
+            <div class="auth-field-group mt-3">
+              <div class="flex-between">
+                <label class="auth-field-label" for="login-password-input">Security Password</label>
+                <a href="javascript:void(0)" onclick="switchAuthMode('reset')" class="auth-link-subtle">Forgot password? Send OTP →</a>
+              </div>
+              <div class="auth-input-wrap">
+                <span class="auth-input-icon">🔒</span>
+                <input type="password" id="login-password-input" class="auth-modern-input font-mono"
+                  placeholder="Enter your password..." required>
+                <button type="button" class="auth-eye-btn" onclick="toggleAuthPassword('login-password-input', this)" title="Show/Hide Password">👁️</button>
+              </div>
+            </div>
+
+            <div id="login-status-msg" class="auth-status-banner mt-3"></div>
+
+            <button type="submit" class="auth-submit-btn mt-3" id="btn-auth-login">
+              <span>🚀 Authenticate &amp; Launch Workspace</span>
+            </button>
+          </form>
+
+          <div class="auth-stage-footer">
+            <span>New investigator without clearance?</span>
+            <a href="javascript:void(0)" onclick="switchAuthMode('register')">Create account with Email OTP →</a>
+          </div>
+        </div>
+
+        <!-- 2. CREATE ACCOUNT (SIGN UP WITH EMAIL OTP) PANEL -->
+        <div id="auth-panel-register" class="auth-form-stage" style="display: none;">
+          <div class="auth-stage-heading">
+            <div class="flex-between">
+              <h3>Create Investigator Account</h3>
+              <span class="user-role-badge role-user" style="font-size: 0.68rem;">Default: 👤 USER</span>
+            </div>
+            <p>We will dispatch a <strong>6-digit verification OTP</strong> to validate your email address.</p>
+          </div>
+
+          <form id="auth-register-form" onsubmit="handleRegisterSubmit(event)" autocomplete="on">
+            <div class="grid-2col-gap10">
+              <div class="auth-field-group">
+                <label class="auth-field-label" for="reg-name-input">Full Name / Callsign</label>
+                <div class="auth-input-wrap">
+                  <span class="auth-input-icon">👤</span>
+                  <input type="text" id="reg-name-input" class="auth-modern-input" placeholder="e.g. Dr. Elena Vance" required>
+                </div>
+              </div>
+              <div class="auth-field-group">
+                <label class="auth-field-label" for="reg-dept-input">Assigned Unit / Division</label>
+                <div class="auth-input-wrap">
+                  <span class="auth-input-icon">🏢</span>
+                  <select id="reg-dept-input" class="auth-modern-input">
+                    <option value="Forensic Verification Desk">Forensic Verification Desk</option>
+                    <option value="Synthetic Media & Deepfake Lab">Synthetic Media &amp; Deepfake Lab</option>
+                    <option value="Disinformation Threat Intel">Disinformation Threat Intel</option>
+                    <option value="OSINT & Editorial Audit">OSINT &amp; Editorial Audit</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="auth-field-group mt-2">
+              <div class="flex-between">
+                <label class="auth-field-label" for="reg-email-input">Email Address (Receives 6-Digit OTP)</label>
+                <span class="font-mono text-emerald" style="font-size: 0.68rem;">🟢 Email Service Ready</span>
+              </div>
+              <div class="auth-input-wrap">
+                <span class="auth-input-icon">📧</span>
+                <input type="email" id="reg-email-input" class="auth-modern-input font-mono"
+                  placeholder="your.email@gmail.com" required>
+              </div>
+            </div>
+
+            <div class="auth-field-group mt-2">
+              <div class="flex-between">
+                <label class="auth-field-label" for="reg-password-input">Create Password (Min 6 characters)</label>
+                <span id="reg-pwd-strength-lbl" class="font-mono text-dim" style="font-size: 0.68rem;">Strength: —</span>
+              </div>
+              <div class="auth-input-wrap">
+                <span class="auth-input-icon">🔑</span>
+                <input type="password" id="reg-password-input" class="auth-modern-input font-mono"
+                  placeholder="Create a strong password..." minlength="6" required
+                  oninput="updatePasswordStrengthMeter(this.value)">
+                <button type="button" class="auth-eye-btn" onclick="toggleAuthPassword('reg-password-input', this)" title="Show/Hide Password">👁️</button>
+              </div>
+              <!-- 4-Segment Password Strength Bar -->
+              <div class="auth-pwd-meter">
+                <div class="auth-pwd-seg" id="pwd-seg-1"></div>
+                <div class="auth-pwd-seg" id="pwd-seg-2"></div>
+                <div class="auth-pwd-seg" id="pwd-seg-3"></div>
+                <div class="auth-pwd-seg" id="pwd-seg-4"></div>
+              </div>
+            </div>
+
+            <div id="reg-status-msg" class="auth-status-banner mt-2"></div>
+
+            <button type="submit" class="auth-submit-btn mt-2" id="btn-auth-register">
+              <span>📨 Register &amp; Send 6-Digit OTP</span>
+            </button>
+          </form>
+
+          <div class="auth-stage-footer">
+            <span>Already hold an active clearance?</span>
+            <a href="javascript:void(0)" onclick="switchAuthMode('login')">Sign in to existing account →</a>
+          </div>
+        </div>
+
+        <!-- 3. 6-DIGIT EMAIL OTP VERIFICATION PANEL -->
+        <div id="auth-panel-otp" class="auth-form-stage" style="display: none;">
+          <div class="auth-otp-hero">
+            <div class="auth-otp-badge-icon">📬</div>
+            <div>
+              <h3 style="margin: 0; font-size: 1.08rem; color: var(--text-main);">Verify Your Email via 6-Digit OTP</h3>
+              <p style="margin: 3px 0 0; font-size: 0.78rem; color: var(--text-muted);">
+                Code dispatched to <strong id="otp-target-email-lbl" class="text-cyan font-mono">user@veritas.ai</strong>
+              </p>
+            </div>
+          </div>
+
+          <!-- 6-Digit OTP Input Grid -->
+          <div class="otp-digit-grid mt-3" id="otp-boxes-container">
+            <input type="text" inputmode="numeric" maxlength="1" class="otp-digit-box font-mono" data-otp-idx="0" oninput="onOtpDigitInput(event, 0)" onkeydown="onOtpDigitKeydown(event, 0)" onpaste="onOtpPaste(event)">
+            <input type="text" inputmode="numeric" maxlength="1" class="otp-digit-box font-mono" data-otp-idx="1" oninput="onOtpDigitInput(event, 1)" onkeydown="onOtpDigitKeydown(event, 1)" onpaste="onOtpPaste(event)">
+            <input type="text" inputmode="numeric" maxlength="1" class="otp-digit-box font-mono" data-otp-idx="2" oninput="onOtpDigitInput(event, 2)" onkeydown="onOtpDigitKeydown(event, 2)" onpaste="onOtpPaste(event)">
+            <input type="text" inputmode="numeric" maxlength="1" class="otp-digit-box font-mono" data-otp-idx="3" oninput="onOtpDigitInput(event, 3)" onkeydown="onOtpDigitKeydown(event, 3)" onpaste="onOtpPaste(event)">
+            <input type="text" inputmode="numeric" maxlength="1" class="otp-digit-box font-mono" data-otp-idx="4" oninput="onOtpDigitInput(event, 4)" onkeydown="onOtpDigitKeydown(event, 4)" onpaste="onOtpPaste(event)">
+            <input type="text" inputmode="numeric" maxlength="1" class="otp-digit-box font-mono" data-otp-idx="5" oninput="onOtpDigitInput(event, 5)" onkeydown="onOtpDigitKeydown(event, 5)" onpaste="onOtpPaste(event)">
+          </div>
+
+          <div class="flex-between mt-3" style="font-size: 0.76rem;">
+            <span class="font-mono text-dim">⏱️ Code expires in: <strong id="otp-expiry-timer" class="text-cyan">10:00</strong></span>
+            <button type="button" class="clay-btn-sm" id="btn-resend-otp" onclick="handleResendOtp()">🔄 Resend New OTP</button>
+          </div>
+
+          <!-- Real-Time Secure Email Delivery Notice -->
+          <div class="auth-security-notice-card mt-3">
+            <div style="display: flex; align-items: flex-start; gap: 10px;">
+              <span style="font-size: 1.25rem; line-height: 1;">🛡️</span>
+              <div style="flex: 1; font-size: 0.77rem; color: var(--text-muted); line-height: 1.5;">
+                A cryptographic 6-digit verification code has been dispatched via <strong>Secure SMTP (TLS/465)</strong> to your email. Check your inbox and spam folder, then enter the code above.
+              </div>
+            </div>
+          </div>
+
+          <div id="otp-status-msg" class="auth-status-banner mt-2"></div>
+
+          <button type="button" class="auth-submit-btn mt-3" id="btn-verify-otp" onclick="handleVerifyOtpSubmit()">
+            <span>✅ Verify 6-Digit OTP &amp; Activate Clearance</span>
+          </button>
+
+          <div class="auth-stage-footer">
+            <span>Entered the wrong email address?</span>
+            <a href="javascript:void(0)" onclick="switchAuthMode('register')">← Back to Registration</a>
+          </div>
+        </div>
+
+        <!-- 4. PASSWORD RECOVERY VIA EMAIL OTP PANEL -->
+        <div id="auth-panel-reset" class="auth-form-stage" style="display: none;">
+          <div class="auth-stage-heading">
+            <h3>Reset Account Password</h3>
+            <p>Dispatch a 6-digit recovery OTP to your registered email address.</p>
+          </div>
+
+          <div class="auth-field-group">
+            <label class="auth-field-label" for="reset-email-input">Registered Email Address</label>
+            <div class="url-input-row">
+              <div class="auth-input-wrap" style="flex: 1;">
+                <span class="auth-input-icon">✉️</span>
+                <input type="email" id="reset-email-input" class="auth-modern-input font-mono" placeholder="Enter your registered email..." onkeydown="if(event.key==='Enter') sendPasswordResetOtp()">
+              </div>
+              <button type="button" class="clay-btn-sm" id="btn-send-reset-otp" onclick="sendPasswordResetOtp()" style="white-space: nowrap; padding: 0 14px;">📧 Send OTP</button>
+            </div>
+          </div>
+
+          <div class="grid-2col-gap10 mt-3">
+            <div class="auth-field-group">
+              <label class="auth-field-label" for="reset-otp-input">6-Digit OTP Code</label>
+              <div class="auth-input-wrap">
+                <span class="auth-input-icon">🔢</span>
+                <input type="text" id="reset-otp-input" class="auth-modern-input font-mono" maxlength="6" placeholder="123456" onkeydown="if(event.key==='Enter') handleResetPasswordSubmit()">
+              </div>
+            </div>
+            <div class="auth-field-group">
+              <label class="auth-field-label" for="reset-newpass-input">New Security Password</label>
+              <div class="auth-input-wrap">
+                <span class="auth-input-icon">🔐</span>
+                <input type="password" id="reset-newpass-input" class="auth-modern-input font-mono" placeholder="Min 6 characters..." minlength="6" onkeydown="if(event.key==='Enter') handleResetPasswordSubmit()">
+                <button type="button" class="auth-eye-btn" onclick="toggleAuthPassword('reset-newpass-input', this)">👁️</button>
+              </div>
+            </div>
+          </div>
+
+          <div id="reset-status-msg" class="auth-status-banner mt-2"></div>
+
+          <button type="button" class="auth-submit-btn mt-3" id="btn-submit-reset-password" onclick="handleResetPasswordSubmit()">
+            <span>🔐 Verify OTP &amp; Save New Password</span>
+          </button>
+
+          <div class="auth-stage-footer">
+            <span>Remembered your credentials?</span>
+            <a href="javascript:void(0)" onclick="switchAuthMode('login')">← Return to Sign In</a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ADMIN CLEARANCE REQUIRED (RBAC) ACCESS DENIED MODAL -->
+  <div id="rbac-denied-modal" class="modal-overlay" style="display: none;" onclick="if(event.target===this) closeRbacDeniedModal()">
+    <div class="modal-clay-box" style="max-width: 520px; border: 1px solid rgba(244, 63, 94, 0.45);">
+      <div class="flex-between">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="font-size: 1.8rem;">🔒</span>
+          <div>
+            <h3 class="clay-card-title" style="color: #fda4af;">Administrator Clearance Required</h3>
+            <span class="font-mono text-dim" style="font-size: 0.72rem;">RBAC Policy Enforcement &bull; Datasets &amp; Streams Protection</span>
+          </div>
+        </div>
+        <button type="button" class="btn-close" onclick="closeRbacDeniedModal()">✕</button>
+      </div>
+
+      <div class="clay-inset p-3 mt-3" style="border-left: 4px solid var(--rose);">
+        <p style="font-size: 0.88rem; color: var(--text-main); font-weight: 600;" id="rbac-denied-feature-title">
+          Restricted Feature: Datasets &amp; Streams
+        </p>
+        <p class="text-dim mt-1" style="font-size: 0.82rem; line-height: 1.5;">
+          Your current account (<strong id="rbac-denied-user-email" class="text-cyan font-mono">analyst@veritas.ai</strong>) has <strong>STANDARD USER</strong> clearance. Only users with <strong>ADMIN</strong> clearance can access:
+        </p>
+        <ul class="flags-list mt-2" style="font-size: 0.8rem;">
+          <li><strong>Fakeddit Dataset Explorer</strong> (7,000 Benchmark Corpus)</li>
+          <li><strong>Real-Time Model Builder</strong> (Live Stream Ingestion &amp; Retraining)</li>
+          <li><strong>MongoDB Data Explorer</strong> (Database Records &amp; Mutations)</li>
+          <li><strong>Access Control &amp; IAM Hub</strong> (Promoting / Demoting Users)</li>
+        </ul>
+      </div>
+
+      <p class="text-dim mt-2" style="font-size: 0.78rem;">
+        💡 An existing Administrator can promote your account to <strong>ADMIN</strong> inside the <strong>Access Control &amp; IAM</strong> panel, or you can switch to an Administrator account now.
+      </p>
+
+      <div class="modal-actions mt-3">
+        <button type="button" class="clay-btn-secondary" onclick="closeRbacDeniedModal()">Stay as Standard User</button>
+        <button type="button" class="clay-btn-primary" onclick="closeRbacDeniedModal(); quickDemoLogin('admin');">👑 Switch to Admin Account</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =====================================================================
+       ADVANCED ENTERPRISE USER PROFILE & SECURITY CLEARANCE MODAL
+       ===================================================================== -->
+  <div id="user-profile-modal" class="modal-overlay" style="display: none;" onclick="if(event.target===this) closeUserProfileModal()">
+    <div class="modal-clay-box profile-modal-card">
+      <div class="profile-header-banner">
+        <div class="profile-avatar-wrap">
+          <div class="profile-avatar-initials" id="profile-modal-avatar">VR</div>
+          <span class="profile-status-dot" title="Authenticated & Active"></span>
+        </div>
+        <div class="profile-title-block">
+          <div class="flex-between">
+            <h3 class="profile-full-name" id="profile-modal-name">Administrator</h3>
+            <button type="button" class="btn-close" onclick="closeUserProfileModal()">✕</button>
+          </div>
+          <div class="profile-email font-mono" id="profile-modal-email">admin@veritas.ai</div>
+          <div class="profile-role-badge-row mt-1">
+            <span class="user-role-badge role-admin" id="profile-modal-role-badge">👑 ADMIN</span>
+            <span class="profile-clearance-pill" id="profile-modal-clearance">Tier 1: Full Suite &amp; IAM Access</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Account Telemetry & Security Specs -->
+      <div class="profile-details-grid mt-3">
+        <div class="profile-detail-item">
+          <span class="profile-detail-label">Assigned Department</span>
+          <span class="profile-detail-value" id="profile-modal-dept">Forensic Analysis Unit</span>
+        </div>
+        <div class="profile-detail-item">
+          <span class="profile-detail-label">Verification Status</span>
+          <span class="profile-detail-value text-emerald font-mono" id="profile-modal-verified">✅ Email OTP Verified</span>
+        </div>
+        <div class="profile-detail-item">
+          <span class="profile-detail-label">Clearance Scope</span>
+          <span class="profile-detail-value font-mono text-cyan" id="profile-modal-scope">Full Datasets &amp; Streams</span>
+        </div>
+        <div class="profile-detail-item">
+          <span class="profile-detail-label">Session Status</span>
+          <span class="profile-detail-value font-mono text-emerald" id="profile-modal-session">🟢 Active JWT Session</span>
+        </div>
+      </div>
+
+      <!-- Module Clearance Matrix -->
+      <div class="profile-clearance-box mt-3">
+        <div class="profile-box-title">CLEARANCE MATRIX &amp; ACCESSIBLE CAPABILITIES</div>
+        <div class="profile-permissions-list" id="profile-modal-permissions">
+          <!-- Dynamically populated based on role -->
+        </div>
+      </div>
+
+      <!-- Profile Modal Actions -->
+      <div class="profile-actions-row mt-3">
+        <div style="display: flex; gap: 8px;">
+          <button type="button" class="clay-btn-sm" id="btn-profile-iam" onclick="closeUserProfileModal(); switchTab('access-control');" style="display: none;">
+            🔐 Open IAM Governance Hub
+          </button>
+          <button type="button" class="clay-btn-secondary" onclick="closeUserProfileModal(); openAuthPortal('reset');">
+            🔄 Reset Password
+          </button>
+        </div>
+        <button type="button" class="clay-btn-danger" onclick="closeUserProfileModal(); handleLogout();">
+          🚪 Sign Out
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- DISPATCHED EMAIL INSPECTOR MODAL (Admin Audit Preview) -->
+  <div id="email-preview-modal" class="modal-overlay" style="display: none;" onclick="if(event.target===this) closeEmailPreviewModal()">
+    <div class="modal-clay-box modal-lg" style="max-width: 680px;">
+      <div class="flex-between">
+        <div>
+          <h3 class="clay-card-title">📧 Dispatched Email Audit Inspector</h3>
+          <span class="text-dim font-mono" style="font-size: 0.74rem;" id="nm-preview-meta">MIME Multipart/Alternative HTML Payload</span>
+        </div>
+        <button type="button" class="btn-close" onclick="closeEmailPreviewModal()">✕</button>
+      </div>
+      <div id="nm-preview-body" class="mt-3" style="border-radius: 12px; overflow: hidden; border: 1px solid var(--border-glass); max-height: 520px; overflow-y: auto;"></div>
+      <div class="modal-actions mt-3">
+        <button type="button" class="clay-btn-primary" onclick="closeEmailPreviewModal()">Close Preview</button>
+      </div>
+    </div>
+  </div>
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-  <script src="/static/app.js?v=5.1"></script>
+  <script src="/static/app.js?v=8.0"></script>
 
 </body>
 

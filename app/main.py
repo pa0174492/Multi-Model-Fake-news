@@ -11,7 +11,7 @@ import shutil
 import tempfile
 import logging
 from typing import Optional, Dict, Any, List, Tuple
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Query
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Query, Request, Depends
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -36,6 +36,7 @@ from src.services.database_service import db_service
 from src.services.realtime_trainer import realtime_trainer
 from src.services.dataset_service import dataset_service
 from src.services.crossmodal_service import crossmodal_service
+from src.services.auth_service import auth_service
 from src.services.advanced_forensics import (
     BatchForensicsService,
     ViralitySimulatorService,
@@ -203,12 +204,291 @@ async def get_test_samples(limit: int = 12):
 
 
 # ==========================================
-# Dataset & Corpus Explorer Endpoints
+# Authentication, Secure Email OTP & RBAC Dependencies
+# ==========================================
+
+def get_request_token(request: Request) -> Optional[str]:
+    auth_header = request.headers.get("Authorization") or request.headers.get("X-Auth-Token")
+    if auth_header:
+        return auth_header.replace("Bearer ", "").strip()
+    return request.query_params.get("token")
+
+
+def require_authenticated_user(request: Request) -> Dict[str, Any]:
+    token = get_request_token(request)
+    user = auth_service.verify_token(token)
+    if not user:
+        raise HTTPException(
+            status_code=401,
+            detail="Authentication Required: Please sign in to access Veritas AI Suite."
+        )
+    return user
+
+
+def require_admin_clearance(request: Request) -> Dict[str, Any]:
+    token = get_request_token(request)
+    user = auth_service.verify_token(token)
+    if not user:
+        raise HTTPException(
+            status_code=401,
+            detail="Authentication Required: Please sign in with an Administrator account."
+        )
+    if user.get("role") != "admin":
+        raise HTTPException(
+            status_code=403,
+            detail="Admin Clearance Required: Only Administrators have access to Datasets & Streams, System Benchmarks, and Access Control."
+        )
+    return user
+
+
+@app.post("/api/auth/register")
+def auth_register_endpoint(
+    name: str = Form(...),
+    email: str = Form(...),
+    password: str = Form(...),
+    department: str = Form("Forensic Analysis Unit")
+):
+    """Registers a new user account with MongoDB storage and dispatches a 6-digit verification code."""
+    ok, msg, data = auth_service.register_user(
+        name=name,
+        email=email,
+        password=password,
+        department=department
+    )
+    if not ok:
+        return JSONResponse(status_code=400, content={"status": "error", "message": msg})
+    return {"status": "success", "message": msg, **(data or {})}
+
+
+@app.post("/api/auth/verify-otp")
+def auth_verify_otp_endpoint(
+    email: str = Form(...),
+    otp: str = Form(...),
+    purpose: str = Form("email_verification")
+):
+    """Verifies the 6-digit security code and issues an authenticated JWT session token."""
+    ok, msg, user = auth_service.verify_otp_code(email=email, otp_code=otp, purpose=purpose)
+    if not ok:
+        return JSONResponse(status_code=400, content={"status": "error", "message": msg})
+
+    raw_user = auth_service.get_user_by_email(email)
+    token = auth_service.generate_token(raw_user) if raw_user else ""
+    return {
+        "status": "success",
+        "message": msg,
+        "user": user,
+        "token": token
+    }
+
+
+@app.post("/api/auth/resend-otp")
+def auth_resend_otp_endpoint(
+    email: str = Form(...),
+    purpose: str = Form("email_verification")
+):
+    """Resends a 6-digit verification code via secure email."""
+    raw_user = auth_service.get_user_by_email(email)
+    name = raw_user.get("name", "Investigator") if raw_user else "Investigator"
+    role = raw_user.get("role", "user") if raw_user else "user"
+    res = auth_service.generate_and_send_otp(
+        email=email,
+        name=name,
+        purpose=purpose,
+        role=role,
+        force_resend=False
+    )
+    if res.get("status") == "cooldown":
+        return JSONResponse(status_code=429, content=res)
+    if res.get("status") == "error":
+        return JSONResponse(status_code=400, content=res)
+    return res
+
+
+@app.post("/api/auth/login")
+def auth_login_endpoint(
+    email: str = Form(...),
+    password: str = Form(...)
+):
+    """Authenticates a user with email & password against MongoDB. Triggers verification code if email is unverified."""
+    ok, msg, data = auth_service.login_user(email=email, password=password)
+    if not ok:
+        if data and data.get("requires_otp"):
+            return JSONResponse(
+                status_code=403,
+                content={"status": "unverified", "message": msg, **data}
+            )
+        return JSONResponse(status_code=401, content={"status": "error", "message": msg})
+    return {"status": "success", "message": msg, **(data or {})}
+
+
+@app.post("/api/auth/forgot-password")
+def auth_forgot_password_endpoint(email: str = Form(...)):
+    """Sends a password reset code via secure email."""
+    clean_email = (email or "").strip().lower()
+    raw_user = auth_service.get_user_by_email(clean_email)
+    if not raw_user:
+        return JSONResponse(
+            status_code=404,
+            content={"status": "error", "message": f"No account found matching '{clean_email}'. Please register first or check your email spelling."}
+        )
+    res = auth_service.generate_and_send_otp(
+        email=clean_email,
+        name=raw_user.get("name", "Investigator"),
+        purpose="password_reset",
+        role=raw_user.get("role", "user"),
+        force_resend=True
+    )
+    if res.get("status") == "error":
+        return JSONResponse(status_code=400, content=res)
+    return {
+        "status": "success",
+        "message": f"Password reset verification code dispatched to {clean_email}.",
+        "otp_dispatch": res
+    }
+
+
+@app.post("/api/auth/reset-password")
+def auth_reset_password_endpoint(
+    email: str = Form(...),
+    otp: str = Form(...),
+    new_password: str = Form(...)
+):
+    """Resets password in MongoDB using a verified 6-digit security code."""
+    clean_email = (email or "").strip().lower()
+    ok, msg, data = auth_service.reset_password_with_otp(
+        email=clean_email,
+        otp_code=(otp or "").strip(),
+        new_password=new_password
+    )
+    if not ok:
+        return JSONResponse(status_code=400, content={"status": "error", "message": msg})
+    return {"status": "success", "message": msg, **(data or {})}
+
+
+@app.get("/api/auth/me")
+def auth_me_endpoint(request: Request):
+    """Returns the currently authenticated user's profile and live RBAC role from MongoDB."""
+    token = get_request_token(request)
+    user = auth_service.verify_token(token)
+    if not user:
+        return JSONResponse(status_code=401, content={"status": "unauthenticated", "user": None})
+    return {"status": "success", "user": user}
+
+
+@app.get("/api/auth/outbox")
+def auth_outbox_endpoint(request: Request):
+    """Returns recent email dispatches for audit preview (Admin Only)."""
+    require_admin_clearance(request)
+    return {
+        "status": "success",
+        "outbox": auth_service._outbox_messages[:15],
+        "smtp_configured": bool(auth_service.smtp_config.get("user") and auth_service.smtp_config.get("pass"))
+    }
+
+
+# ==========================================
+# Admin Access Control & IAM Governance Endpoints
+# ==========================================
+
+@app.get("/api/auth/users")
+def admin_list_users_endpoint(
+    request: Request,
+    query: Optional[str] = Query(None),
+    role: str = Query("all")
+):
+    """Admin-only endpoint to inspect all users stored in MongoDB, roles, audit logs, and email dispatch status."""
+    require_admin_clearance(request)
+    data = auth_service.list_users_for_admin(query=query, role_filter=role)
+    return {"status": "success", **data}
+
+
+@app.post("/api/auth/update-role")
+def admin_update_role_endpoint(
+    request: Request,
+    target_user_id: str = Form(...),
+    new_role: str = Form(...)
+):
+    """Admin-only endpoint to promote a user to 'admin' or demote an admin to 'user' in MongoDB."""
+    admin_user = require_admin_clearance(request)
+    ok, msg, updated_user = auth_service.update_user_role(
+        admin_user=admin_user,
+        target_user_id=target_user_id,
+        new_role=new_role
+    )
+    if not ok:
+        return JSONResponse(status_code=400, content={"status": "error", "message": msg})
+    return {"status": "success", "message": msg, "user": updated_user}
+
+
+@app.post("/api/auth/admin-verify-user")
+def admin_verify_user_endpoint(
+    request: Request,
+    target_user_id: str = Form(...)
+):
+    """Admin-only endpoint to manually verify a user's email in MongoDB."""
+    admin_user = require_admin_clearance(request)
+    ok, msg, updated_user = auth_service.admin_verify_user(admin_user=admin_user, target_user_id=target_user_id)
+    if not ok:
+        return JSONResponse(status_code=400, content={"status": "error", "message": msg})
+    return {"status": "success", "message": msg, "user": updated_user}
+
+
+@app.post("/api/auth/delete-user")
+def admin_delete_user_endpoint(
+    request: Request,
+    target_user_id: str = Form(...)
+):
+    """Admin-only endpoint to delete a user account from MongoDB."""
+    admin_user = require_admin_clearance(request)
+    ok, msg = auth_service.admin_delete_user(admin_user=admin_user, target_user_id=target_user_id)
+    if not ok:
+        return JSONResponse(status_code=400, content={"status": "error", "message": msg})
+    return {"status": "success", "message": msg}
+
+
+@app.post("/api/settings/save-smtp")
+def save_smtp_settings_endpoint(
+    request: Request,
+    host: str = Form("smtp.gmail.com"),
+    port: int = Form(465),
+    user: str = Form(""),
+    password: str = Form(""),
+    from_addr: Optional[str] = Form(None),
+    test_recipient: Optional[str] = Form(None)
+):
+    """Admin-only endpoint to configure encrypted SMTP transport and optionally send a test verification code."""
+    admin_user = require_admin_clearance(request)
+    ok, msg = auth_service.update_smtp_settings(
+        host=host,
+        port=port,
+        user=user,
+        password=password,
+        from_addr=from_addr
+    )
+    test_dispatch = None
+    if test_recipient and "@" in test_recipient:
+        test_dispatch = auth_service.generate_and_send_otp(
+            email=test_recipient,
+            name=admin_user.get("name", "Admin"),
+            purpose="email_verification",
+            role="admin",
+            force_resend=True
+        )
+    return {
+        "status": "success" if ok else "error",
+        "message": msg,
+        "test_dispatch": test_dispatch
+    }
+
+
+# ==========================================
+# Dataset & Corpus Explorer Endpoints (Admin Only)
 # ==========================================
 
 @app.get("/api/dataset/summary")
-async def get_dataset_summary_endpoint():
-    """Returns high-level statistics, schema dictionary, class balance, and split counts."""
+def get_dataset_summary_endpoint(request: Request):
+    """Returns high-level statistics, schema dictionary, class balance, and split counts (Admin Only)."""
+    require_admin_clearance(request)
     try:
         return {"status": "success", "summary": dataset_service.get_dataset_summary()}
     except Exception as e:
@@ -217,7 +497,8 @@ async def get_dataset_summary_endpoint():
 
 
 @app.get("/api/dataset/explorer")
-async def get_dataset_explorer_endpoint(
+def get_dataset_explorer_endpoint(
+    request: Request,
     split: str = Query("all"),
     query: Optional[str] = Query(None),
     veracity: str = Query("all"),
@@ -225,7 +506,8 @@ async def get_dataset_explorer_endpoint(
     page: int = Query(1),
     page_size: int = Query(20)
 ):
-    """Queries, searches, and paginates samples across Fakeddit dataset splits."""
+    """Queries, searches, and paginates samples across Fakeddit dataset splits (Admin Only)."""
+    require_admin_clearance(request)
     try:
         return dataset_service.query_dataset(
             split=split,
@@ -452,11 +734,16 @@ async def predict_custom(
             "upvote_ratio": upvote_ratio
         }
 
-        pred_result = pipeline.predict(text=text, image_path=target_image_path, metadata=metadata)
-        explanation = pipeline.explain(text=text, image_path=target_image_path, metadata=metadata, top_k=6)
+        pred_result = await asyncio.to_thread(
+            pipeline.predict, text=text, image_path=target_image_path, metadata=metadata
+        )
+        explanation = await asyncio.to_thread(
+            pipeline.explain, text=text, image_path=target_image_path, metadata=metadata, top_k=6
+        )
 
         is_fake = pred_result["is_fake_binary"] == 1
-        evidence_report = evidence_service.generate_evidence_report(
+        evidence_report = await asyncio.to_thread(
+            evidence_service.generate_evidence_report,
             headline=text,
             is_fake=is_fake,
             fake_prob=pred_result["fake_probability"],
@@ -567,20 +854,22 @@ async def chat_with_assistant(
 # ==========================================
 
 @app.get("/api/database/status")
-async def get_database_status():
+def get_database_status():
     """Returns live connection health, collection counts, and telemetry for MongoDB."""
     return db_service.get_status()
 
 
 @app.get("/api/database/records")
-async def get_database_records(
+def get_database_records(
+    request: Request,
     collection: str = Query("predictions"),
     query: Optional[str] = Query(None),
     label: Optional[str] = Query("all"),
     limit: int = Query(50),
     offset: int = Query(0)
 ):
-    """Fetches, searches, and paginates records from MongoDB collections."""
+    """Fetches, searches, and paginates records from MongoDB collections (Admin Only)."""
+    require_admin_clearance(request)
     return db_service.get_records(
         collection_name=collection,
         query_text=query,
@@ -591,7 +880,8 @@ async def get_database_records(
 
 
 @app.post("/api/database/save-record")
-async def save_manual_record(
+def save_manual_record(
+    request: Request,
     collection: str = Form("predictions"),
     headline: str = Form(...),
     prediction: str = Form("Authentic News"),
@@ -600,7 +890,8 @@ async def save_manual_record(
     input_format: str = Form("Manual Database Entry"),
     source: str = Form("Database Entry")
 ):
-    """Manually creates a record in the database."""
+    """Manually creates a record in the database (Admin Only)."""
+    require_admin_clearance(request)
     try:
         rec_id = db_service.save_prediction({
             "headline": headline,
@@ -620,11 +911,13 @@ async def save_manual_record(
 
 
 @app.post("/api/database/delete-record")
-async def delete_database_record(
+def delete_database_record(
+    request: Request,
     collection: str = Form(...),
     record_id: str = Form(...)
 ):
-    """Deletes a record from MongoDB."""
+    """Deletes a record from MongoDB (Admin Only)."""
+    require_admin_clearance(request)
     success = db_service.delete_record(collection, record_id)
     if success:
         return {"status": "success", "message": f"Record {record_id} deleted."}
@@ -632,11 +925,13 @@ async def delete_database_record(
 
 
 @app.post("/api/settings/save-mongodb")
-async def save_mongodb_uri(
+def save_mongodb_uri(
+    request: Request,
     uri: str = Form(...),
     db_name: Optional[str] = Form("veritas_db")
 ):
-    """Connects and validates a user-provided MongoDB URI."""
+    """Connects and validates a user-provided MongoDB URI (Admin Only)."""
+    require_admin_clearance(request)
     success, message = db_service.update_uri(uri, db_name)
     return {
         "status": "success" if success else "error",
@@ -646,21 +941,24 @@ async def save_mongodb_uri(
 
 
 # ==========================================
-# Real-Time Model Building & Stream Endpoints
+# Real-Time Model Building & Stream Endpoints (Admin Only)
 # ==========================================
 
 @app.get("/api/realtime-model/status")
-async def get_realtime_model_status():
-    """Returns active real-time model version, stream samples, and convergence metrics."""
+def get_realtime_model_status(request: Request):
+    """Returns active real-time model version, stream samples, and convergence metrics (Admin Only)."""
+    require_admin_clearance(request)
     return realtime_trainer.get_status()
 
 
 @app.post("/api/realtime-model/train")
-async def trigger_realtime_training(
+def trigger_realtime_training(
+    request: Request,
     epochs: int = Form(12),
     learning_rate: float = Form(0.05)
 ):
-    """Executes incremental retraining of the fusion model on live ingested stream data."""
+    """Executes incremental retraining of the fusion model on live ingested stream data (Admin Only)."""
+    require_admin_clearance(request)
     try:
         report = realtime_trainer.build_realtime_model(epochs=epochs, learning_rate=learning_rate)
         return {"status": "success", "training_report": report}
@@ -670,7 +968,8 @@ async def trigger_realtime_training(
 
 
 @app.post("/api/realtime-model/add-sample")
-async def add_realtime_stream_sample(
+def add_realtime_stream_sample(
+    request: Request,
     title: str = Form(...),
     label: int = Form(...),
     category: str = Form("Live News Stream"),
@@ -680,7 +979,8 @@ async def add_realtime_stream_sample(
     upvote_ratio: float = Form(0.85),
     image_url: Optional[str] = Form(None)
 ):
-    """Ingests a real-time sample into the training stream pipeline and saves to database."""
+    """Ingests a real-time sample into the training stream pipeline and saves to database (Admin Only)."""
+    require_admin_clearance(request)
     sample = realtime_trainer.add_stream_sample(
         title=title,
         label=label,
@@ -702,8 +1002,9 @@ async def add_realtime_stream_sample(
 
 
 @app.post("/api/realtime-model/generate-stream-batch")
-async def generate_stream_batch_endpoint(count: int = Form(3)):
-    """Simulates live feed ingestion of breaking news stream batches."""
+def generate_stream_batch_endpoint(request: Request, count: int = Form(3)):
+    """Simulates live feed ingestion of breaking news stream batches (Admin Only)."""
+    require_admin_clearance(request)
     added = realtime_trainer.generate_feed_batch(count=count)
     for s in added:
         try:
@@ -714,11 +1015,13 @@ async def generate_stream_batch_endpoint(count: int = Form(3)):
 
 
 @app.post("/api/realtime-model/predict")
-async def predict_with_realtime_model(
+def predict_with_realtime_model(
+    request: Request,
     headline: str = Form(...),
     use_realtime_model: bool = Form(True)
 ):
-    """Performs inference using the newly built Real-Time Adaptive Model."""
+    """Performs inference using the newly built Real-Time Adaptive Model (Admin Only)."""
+    require_admin_clearance(request)
     result = realtime_trainer.predict_with_realtime_model(headline=headline, is_realtime=use_realtime_model)
     return {"status": "success", "result": result}
 
@@ -756,8 +1059,9 @@ async def verify_gemini_key(
 # ==========================================
 
 @app.get("/api/system/telemetry")
-async def get_system_telemetry_endpoint():
-    """Returns live CPU/RAM utilization, PyTorch device, model cache, and uptime."""
+async def get_system_telemetry_endpoint(request: Request):
+    """Returns live CPU/RAM utilization, PyTorch device, model cache, and uptime (Admin Only)."""
+    require_admin_clearance(request)
     try:
         return {"status": "success", "telemetry": SystemTelemetryService.get_telemetry()}
     except Exception as e:

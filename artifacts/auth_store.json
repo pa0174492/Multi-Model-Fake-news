@@ -1,0 +1,142 @@
+{
+  "users": [
+    {
+      "_id": "6ae83c250e6de282a431338e",
+      "email": "admin@veritas.ai",
+      "created_at": "2026-10-01 09:00:00",
+      "department": "Cybernetic Threat & Dataset Governance",
+      "is_verified": true,
+      "last_login": "2026-11-02 23:27:13",
+      "name": "Chief Forensic Administrator",
+      "password_hash": "6a435a599ab298c7121c37149601adda$35263473e6e215244dcf7de3174aaa0801dabfb5706247d925797e64fc11be88",
+      "promoted_by": "System Root Genesis",
+      "role": "admin"
+    },
+    {
+      "_id": "6ae83c250e6de282a4313390",
+      "email": "analyst@veritas.ai",
+      "created_at": "2026-10-05 14:20:00",
+      "department": "Media Verification Desk",
+      "is_verified": true,
+      "last_login": "2026-11-02 23:27:50",
+      "name": "Sarah Jenkins (Forensic Analyst)",
+      "password_hash": "9ed1dcea0c1aa352b5fe822f0cf0d075$2b5408b9e0dc7f7e0bd276fc2364485ebf49322879528a929630da94a52693df",
+      "promoted_by": null,
+      "role": "user"
+    },
+    {
+      "_id": "6ae83c250e6de282a4313392",
+      "email": "investigator@veritas.ai",
+      "created_at": "2026-10-08 11:15:00",
+      "department": "Disinformation Counter-Ops",
+      "is_verified": true,
+      "last_login": "2026-10-10 18:30:00",
+      "name": "Marcus Vance (OSINT Investigator)",
+      "password_hash": "133af4ce163c51df139b7cedeaf01ed3$060b2e922afe3314841658665cdc2ae872c35710a188046a079132f60f6d5ba9",
+      "promoted_by": null,
+      "role": "user"
+    },
+    {
+      "_id": "6ae83c250e6de282a4313394",
+      "email": "elena.rostova@veritas.ai",
+      "created_at": "2026-10-03 10:05:00",
+      "department": "Neural Architecture & Fakeddit Lab",
+      "is_verified": true,
+      "last_login": "2026-10-11 08:45:00",
+      "name": "Dr. Elena Rostova (ML Auditor)",
+      "password_hash": "2dfc91861cb551e6f3b8bbe455714770$cf1dd049d6e3859843d6f856b404e149fd2d5ff61c8e6d5e5058de321a85f9a0",
+      "promoted_by": "admin@veritas.ai",
+      "role": "admin"
+    },
+    {
+      "_id": "6ae8cf300e6de282a431412e",
+      "email": "pa0174492@gmail.com",
+      "created_at": "2026-11-02 23:28:08",
+      "department": "Forensic Verification Desk",
+      "is_verified": false,
+      "last_login": "",
+      "name": "abcd",
+      "password_hash": "81c88dc36878c9743fe63ed681cd3e24$0b9cc59eb9464d3bd1c9465b6114675e4c850aa649e149f488aaf508815ea3df",
+      "promoted_by": null,
+      "role": "user"
+    },
+    {
+      "_id": "usr_1793879583607_00e7",
+      "name": "abcd",
+      "email": "pa01744.92@gmail.com",
+      "password_hash": "6bb191086eab8fa2acd70b7dc5f157a2$dcaa20b09532bf3e740d490007743f764ed1ee21816f3f19dd00652326d82f5c",
+      "role": "user",
+      "department": "Forensic Verification Desk",
+      "is_verified": true,
+      "created_at": "2026-11-05 17:23:03",
+      "last_login": "2026-11-05 17:25:01",
+      "promoted_by": null
+    }
+  ],
+  "audit_logs": [
+    {
+      "id": "aud_1793879828649_32e4",
+      "timestamp": "2026-11-05 17:27:08",
+      "actor_email": "admin@veritas.ai",
+      "action": "USER_AUTHENTICATED",
+      "target_email": "admin@veritas.ai",
+      "details": "Authenticated session started with 'ADMIN' clearance."
+    },
+    {
+      "id": "aud_1793879701388_ef04",
+      "timestamp": "2026-11-05 17:25:01",
+      "actor_email": "pa01744.92@gmail.com",
+      "action": "PASSWORD_RESET_COMPLETED",
+      "target_email": "pa01744.92@gmail.com",
+      "details": "Password reset completed via secure email code verification."
+    },
+    {
+      "id": "aud_1793879701253_9917",
+      "timestamp": "2026-11-05 17:25:01",
+      "actor_email": "pa01744.92@gmail.com",
+      "action": "EMAIL_OTP_VERIFIED",
+      "target_email": "pa01744.92@gmail.com",
+      "details": "Verified email ownership via 6-digit security code."
+    },
+    {
+      "id": "aud_1793879642735_b67b",
+      "timestamp": "2026-11-05 17:24:02",
+      "actor_email": "pa01744.92@gmail.com",
+      "action": "SECURITY_OTP_DISPATCHED",
+      "target_email": "pa01744.92@gmail.com",
+      "details": "Dispatched 6-digit verification code via Encrypted SMTP (smtp.gmail.com:465) (Purpose: password_reset)"
+    },
+    {
+      "id": "aud_1793879605416_29a6",
+      "timestamp": "2026-11-05 17:23:25",
+      "actor_email": "pa01744.92@gmail.com",
+      "action": "EMAIL_OTP_VERIFIED",
+      "target_email": "pa01744.92@gmail.com",
+      "details": "Verified email ownership via 6-digit security code."
+    },
+    {
+      "id": "aud_1793879588975_665c",
+      "timestamp": "2026-11-05 17:23:08",
+      "actor_email": "pa01744.92@gmail.com",
+      "action": "SECURITY_OTP_DISPATCHED",
+      "target_email": "pa01744.92@gmail.com",
+      "details": "Dispatched 6-digit verification code via Encrypted SMTP (smtp.gmail.com:465) (Purpose: email_verification)"
+    },
+    {
+      "id": "aud_1793879583768_d25b",
+      "timestamp": "2026-11-05 17:23:03",
+      "actor_email": "pa01744.92@gmail.com",
+      "action": "USER_REGISTERED",
+      "target_email": "pa01744.92@gmail.com",
+      "details": "Registered new 'user' account (abcd). Stored in MongoDB."
+    },
+    {
+      "id": "aud_001",
+      "timestamp": "2026-11-05 17:22:29",
+      "actor_email": "admin@veritas.ai",
+      "action": "SYSTEM_IAM_INITIALIZED",
+      "target_email": "admin@veritas.ai",
+      "details": "Identity & Access Control initialized with MongoDB primary persistence."
+    }
+  ]
+}

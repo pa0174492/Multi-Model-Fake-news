@@ -26,22 +26,50 @@ async function apiFetch(endpoint, options = {}) {
   const base = getApiBaseUrl();
   const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
   const url = cleanEndpoint.startsWith('http') ? cleanEndpoint : `${base}${cleanEndpoint}`;
-  
-  const timeoutMs = options.timeout || 25000;
+  const isAuthEndpoint = cleanEndpoint.startsWith('/api/auth/');
+
+  const timeoutMs = options.timeout || (isAuthEndpoint ? 60000 : 45000);
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
-  
-  try {
-    const fetchOptions = { ...options };
-    if (!fetchOptions.signal) {
-      fetchOptions.signal = controller.signal;
+  const timer = setTimeout(() => {
+    try {
+      controller.abort(new Error('Request timed out waiting for server response'));
+    } catch (e) {
+      controller.abort();
     }
-    const response = await fetch(url, fetchOptions);
+  }, timeoutMs);
+
+  const buildFetchOptions = (useSignal = true) => {
+    const fetchOptions = { ...options };
+    const headers = new Headers(fetchOptions.headers || {});
+    const token = window.activeAuthToken || localStorage.getItem('veritas_auth_token');
+    if (token && !headers.has('Authorization')) {
+      headers.set('Authorization', `Bearer ${token}`);
+    }
+    fetchOptions.headers = headers;
+    if (useSignal && !fetchOptions.signal) {
+      fetchOptions.signal = controller.signal;
+    } else if (!useSignal) {
+      delete fetchOptions.signal;
+    }
+    return fetchOptions;
+  };
+
+  try {
+    const response = await fetch(url, buildFetchOptions(true));
     clearTimeout(timer);
     return response;
   } catch (err) {
     clearTimeout(timer);
+    const errMsg = String(err && err.message ? err.message : err);
+    // If an auth request was aborted or hit a transient socket wait, retry once without AbortController
+    if (isAuthEndpoint && (err.name === 'AbortError' || errMsg.includes('aborted'))) {
+      console.info(`[Veritas API] Retrying auth request without abort signal: ${url}`);
+      return await fetch(url, buildFetchOptions(false));
+    }
     console.warn(`[Veritas API] Error during fetch to ${url}:`, err);
+    if (err.name === 'AbortError' || errMsg.includes('signal is aborted')) {
+      throw new Error('Server is warming up AI models — please click the button again in a moment.');
+    }
     throw err;
   }
 }
@@ -688,6 +716,20 @@ const FEATURE_GUIDES = {
       "Monitor memory consumption during large batch audits."
     ],
     proTip: "If RAM usage exceeds 85%, consider batching inference in smaller chunks to prevent swap thrashing."
+  },
+  'access-control': {
+    title: "Identity & Access Control (IAM) Governance Hub",
+    icon: "🔐",
+    tag: "Role-Based Access Control (Admin / User) & Secure Email OTP",
+    whyUseful: "Secures sensitive datasets, live model retraining pipelines, and database records behind strict Role-Based Access Control (RBAC). Only Administrators can access Datasets & Streams or elevate/demote user accounts.",
+    howItWorks: "Uses PBKDF2-HMAC-SHA256 password hashing, JWT session tokens, and 6-digit email OTP verification via encrypted SMTP delivery. Admins can promote standard users to Admin or demote Admins back to standard User in real time.",
+    steps: [
+      "Inspect all registered accounts and their Email OTP verification status.",
+      "Click 'Grant Admin' to promote a trusted user to full Datasets & Streams access.",
+      "Click 'Demote to User' to revoke Admin privileges from an account.",
+      "Review the immutable IAM Security Audit Log and Email OTP Outbox."
+    ],
+    proTip: "Configure your Gmail App Password or custom SMTP credentials in Settings -> Email & SMTP for live external inbox delivery."
   }
 };
 
@@ -796,16 +838,33 @@ const BREADCRUMB_MAP = {
   'linguistics': 'Linguistic NLP & Clickbait Scanner',
   'crossmodal': 'Cross-Modal Alignment & Dissonance',
   'chatbot': 'Veritas AI Chatbot',
-  'dataset': 'Fakeddit Dataset Explorer',
-  'model-builder': 'Real-Time Model Builder',
-  'database': 'MongoDB Data Explorer',
+  'dataset': 'Fakeddit Dataset Explorer (Admin)',
+  'model-builder': 'Real-Time Model Builder (Admin)',
+  'database': 'MongoDB Data Explorer (Admin)',
+  'access-control': 'Access Control & IAM Governance (Admin)',
   'automl': 'AutoML & Benchmarks',
   'telemetry': 'Hardware & Performance Telemetry'
 };
 
+const ADMIN_RESTRICTED_TABS = ['dataset', 'model-builder', 'database', 'access-control', 'automl', 'telemetry'];
+
 window.currentActiveTab = 'lab';
 
 function switchTab(tabId) {
+  // Enforce RBAC for DATASETS & STREAMS and Access Control
+  if (ADMIN_RESTRICTED_TABS.includes(tabId)) {
+    const user = window.currentAuthUser;
+    if (!user) {
+      openAuthPortal('login');
+      return;
+    }
+    if (user.role !== 'admin') {
+      playAudioFx('popup');
+      openRbacDeniedModal(tabId);
+      return;
+    }
+  }
+
   playAudioFx('switch');
   window.currentActiveTab = tabId;
   // Update Sidenav Items
@@ -858,7 +917,7 @@ function switchTab(tabId) {
     loadRealtimeModelStatus();
     const sandboxOut = document.getElementById('sandbox-result-box');
     if (sandboxOut && (sandboxOut.style.display === 'none' || !sandboxOut.innerHTML)) {
-      handleRealtimeModelPredict(new Event('submit'));
+      if (typeof testRealtimeModelPrediction === 'function') testRealtimeModelPrediction();
     }
   } else if (tabId === 'dataset') {
     loadDatasetSummary();
@@ -866,6 +925,8 @@ function switchTab(tabId) {
   } else if (tabId === 'database') {
     refreshDatabaseRecords();
     loadDatabaseStatus();
+  } else if (tabId === 'access-control') {
+    loadAccessControlData();
   } else if (tabId === 'automl') {
     loadSystemData();
   } else if (tabId === 'telemetry') {
@@ -2649,16 +2710,24 @@ async function deleteDbRecord(recordId) {
 // ==========================================
 
 function switchSettingsSubTab(subTab) {
-  document.getElementById('set-tab-mongo').classList.toggle('active', subTab === 'mongo');
-  document.getElementById('set-tab-gemini').classList.toggle('active', subTab === 'gemini');
-  document.getElementById('set-panel-mongo').style.display = subTab === 'mongo' ? 'block' : 'none';
-  document.getElementById('set-panel-gemini').style.display = subTab === 'gemini' ? 'block' : 'none';
+  document.getElementById('set-tab-mongo')?.classList.toggle('active', subTab === 'mongo');
+  document.getElementById('set-tab-gemini')?.classList.toggle('active', subTab === 'gemini');
+  document.getElementById('set-tab-smtp')?.classList.toggle('active', subTab === 'smtp');
+  const pMongo = document.getElementById('set-panel-mongo');
+  const pGemini = document.getElementById('set-panel-gemini');
+  const pSmtp = document.getElementById('set-panel-smtp');
+  if (pMongo) pMongo.style.display = subTab === 'mongo' ? 'block' : 'none';
+  if (pGemini) pGemini.style.display = subTab === 'gemini' ? 'block' : 'none';
+  if (pSmtp) pSmtp.style.display = subTab === 'smtp' ? 'block' : 'none';
 }
 
-function openSettingsModal() {
+function openSettingsModal(defaultSubTab) {
   document.getElementById('settings-modal').style.display = 'flex';
   document.getElementById('gemini-key-input').value = activeGeminiKey;
   document.getElementById('mongodb-uri-input').value = activeMongoUri || 'mongodb://localhost:27017/veritas_db';
+  if (defaultSubTab && typeof defaultSubTab === 'string') {
+    switchSettingsSubTab(defaultSubTab);
+  }
 }
 
 function closeSettingsModal() {
@@ -3598,16 +3667,1060 @@ document.addEventListener('DOMContentLoaded', () => {
   if (typeof loadDatabaseStatus === 'function') loadDatabaseStatus();
   if (typeof loadSystemData === 'function') loadSystemData();
 
-  // Auto-render live outcomes on initial page load so user sees rich results immediately
+  // Render instant preview on page load without blocking the server event loop during Login/Sign-Up
   setTimeout(() => {
     const headline = document.getElementById('headline-input')?.value?.trim();
-    if (headline) {
-      handleAnalyzeSubmit(new Event('submit'));
+    if (headline && typeof renderPredictionResults === 'function') {
+      renderPredictionResults(generateFallbackVeracityOutcome(headline, Boolean(currentExistingPath)));
     }
-  }, 400);
+  }, 200);
 });
 
 
+
+// ==========================================
+// Enterprise Authentication, Email OTP & RBAC Controller
+// ==========================================
+
+window.currentAuthUser = null;
+window.activeAuthToken = localStorage.getItem('veritas_auth_token') || '';
+let pendingOtpEmail = '';
+let pendingOtpPurpose = 'email_verification';
+let latestSandboxOtp = '';
+let latestEmailPreviewHtml = '';
+let otpCountdownInterval = null;
+let otpRemainingSeconds = 600;
+let currentIamRoleFilter = 'all';
+let iamSearchDebounce = null;
+
+function updateAuthStepper(stepNumber) {
+  [1, 2, 3].forEach(num => {
+    const el = document.getElementById(`auth-step-${num}`);
+    if (!el) return;
+    el.classList.remove('active', 'completed');
+    if (num < stepNumber) {
+      el.classList.add('completed');
+    } else if (num === stepNumber) {
+      el.classList.add('active');
+    }
+  });
+}
+
+function toggleAuthPassword(inputId, btnEl) {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+  const isPwd = input.type === 'password';
+  input.type = isPwd ? 'text' : 'password';
+  if (btnEl) btnEl.textContent = isPwd ? '🙈' : '👁️';
+}
+
+function updatePasswordStrengthMeter(pwd) {
+  const val = pwd || '';
+  let score = 0;
+  if (val.length >= 6) score++;
+  if (val.length >= 10) score++;
+  if (/[A-Z]/.test(val) && /[0-9]/.test(val)) score++;
+  if (/[^A-Za-z0-9]/.test(val)) score++;
+
+  const colors = ['#f43f5e', '#f59e0b', '#06b6d4', '#10b981'];
+  const labels = ['Weak', 'Fair', 'Strong', 'Cryptographic Grade'];
+  const activeColor = score > 0 ? colors[score - 1] : 'rgba(255,255,255,0.1)';
+
+  [1, 2, 3, 4].forEach(i => {
+    const seg = document.getElementById(`pwd-seg-${i}`);
+    if (seg) {
+      seg.style.background = i <= score ? activeColor : 'rgba(255,255,255,0.1)';
+    }
+  });
+
+  const lbl = document.getElementById('reg-pwd-strength-lbl');
+  if (lbl) {
+    lbl.textContent = score > 0 ? `Strength: ${labels[score - 1]}` : 'Strength: —';
+    lbl.style.color = score > 0 ? activeColor : 'var(--text-dim)';
+  }
+}
+
+function fillLoginInputs(email, password) {
+  const emailInput = document.getElementById('login-email-input');
+  const passInput = document.getElementById('login-password-input');
+  if (emailInput) emailInput.value = email;
+  if (passInput) passInput.value = password;
+  playAudioFx('click');
+}
+
+function applyUserRoleUI(user) {
+  window.currentAuthUser = user;
+  const roleBadge = document.getElementById('topbar-user-role');
+  const nameLbl = document.getElementById('topbar-user-name');
+  const secDatasets = document.getElementById('nav-section-datasets');
+  const secBenchmarks = document.getElementById('nav-section-benchmarks');
+
+  const isAdmin = Boolean(user && user.role === 'admin');
+
+  if (roleBadge) {
+    if (!user) {
+      roleBadge.textContent = '👤 GUEST';
+      roleBadge.className = 'user-role-badge role-user';
+    } else {
+      roleBadge.textContent = isAdmin ? '👑 ADMIN' : '👤 USER';
+      roleBadge.className = `user-role-badge ${isAdmin ? 'role-admin' : 'role-user'}`;
+    }
+  }
+  if (nameLbl) {
+    nameLbl.textContent = user ? user.name : 'Sign In';
+  }
+
+  // Toggle DATASETS & STREAMS section: strictly visible ONLY for ADMIN
+  if (secDatasets) {
+    secDatasets.style.display = isAdmin ? 'block' : 'none';
+    secDatasets.classList.toggle('hidden-for-user', !isAdmin);
+  }
+
+  // Toggle BENCHMARKS & SYSTEM section: strictly visible ONLY for ADMIN
+  if (secBenchmarks) {
+    secBenchmarks.style.display = isAdmin ? 'block' : 'none';
+    secBenchmarks.classList.toggle('hidden-for-user', !isAdmin);
+  }
+
+  // Toggle individual restricted navigation tabs
+  const restrictedIds = ['dataset', 'model-builder', 'database', 'access-control', 'automl', 'telemetry'];
+  restrictedIds.forEach(id => {
+    const navBtn = document.getElementById(`tab-${id}`);
+    const lockIcon = document.getElementById(`lock-${id}`);
+    const badgeEl = document.getElementById(`badge-${id}`);
+    if (navBtn) {
+      navBtn.style.display = isAdmin ? 'flex' : 'none';
+      navBtn.classList.toggle('locked-for-user', !isAdmin);
+    }
+    if (lockIcon) {
+      lockIcon.style.display = isAdmin ? 'none' : 'none'; // Section is hidden for user
+    }
+    if (badgeEl) {
+      badgeEl.style.display = isAdmin ? 'inline-block' : 'none';
+    }
+  });
+
+  // If user is currently on an admin-restricted tab and is not admin, immediately redirect to 'lab'
+  if (!isAdmin && ADMIN_RESTRICTED_TABS.includes(window.currentActiveTab)) {
+    switchTab('lab');
+  }
+}
+
+function openUserProfileModal() {
+  const user = window.currentAuthUser;
+  if (!user) {
+    openAuthPortal('login');
+    return;
+  }
+
+  const modal = document.getElementById('user-profile-modal');
+  if (!modal) return;
+
+  const isAdmin = user.role === 'admin';
+  const name = user.name || 'Investigator';
+  const email = user.email || '';
+  const dept = user.department || 'Forensic Analysis Unit';
+
+  const initials = name
+    .split(' ')
+    .filter(Boolean)
+    .map(w => w[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase() || 'VR';
+
+  const avatarEl = document.getElementById('profile-modal-avatar');
+  const nameEl = document.getElementById('profile-modal-name');
+  const emailEl = document.getElementById('profile-modal-email');
+  const badgeEl = document.getElementById('profile-modal-role-badge');
+  const clearanceEl = document.getElementById('profile-modal-clearance');
+  const deptEl = document.getElementById('profile-modal-dept');
+  const verifiedEl = document.getElementById('profile-modal-verified');
+  const scopeEl = document.getElementById('profile-modal-scope');
+  const sessionEl = document.getElementById('profile-modal-session');
+  const permsEl = document.getElementById('profile-modal-permissions');
+  const iamBtn = document.getElementById('btn-profile-iam');
+
+  if (avatarEl) avatarEl.textContent = initials;
+  if (nameEl) nameEl.textContent = name;
+  if (emailEl) emailEl.textContent = email;
+  if (badgeEl) {
+    badgeEl.textContent = isAdmin ? '👑 ADMINISTRATOR' : '👤 FIELD INVESTIGATOR';
+    badgeEl.className = `user-role-badge ${isAdmin ? 'role-admin' : 'role-user'}`;
+  }
+  if (clearanceEl) {
+    clearanceEl.textContent = isAdmin
+      ? 'Clearance Level 1: Full Suite & IAM Access'
+      : 'Clearance Level 2: Standard Forensic Analyst';
+  }
+  if (deptEl) deptEl.textContent = dept;
+  if (verifiedEl) {
+    verifiedEl.textContent = user.is_verified ? '✅ Email Verified (Secure OTP)' : '⏳ Pending OTP Verification';
+  }
+  if (scopeEl) {
+    scopeEl.textContent = isAdmin ? 'Full Datasets & Streams + IAM' : 'Standard Forensic Lab Only';
+  }
+  if (sessionEl) {
+    sessionEl.textContent = window.activeAuthToken ? '🟢 Active JWT Session' : '⚪ Demo Session';
+  }
+  if (iamBtn) {
+    iamBtn.style.display = isAdmin ? 'inline-flex' : 'none';
+  }
+
+  if (permsEl) {
+    const permissions = [
+      { name: 'Omni-Modal Veracity Lab', granted: true },
+      { name: 'AI Media Forensics (ELA & FFT)', granted: true },
+      { name: 'Conversational Fact-Check Bot', granted: true },
+      { name: 'Virality Threat Simulator', granted: true },
+      { name: 'Linguistic & Clickbait Forensics', granted: true },
+      { name: 'Cross-Modal Alignment Analysis', granted: true },
+      { name: 'Fakeddit Dataset Explorer (7K)', granted: isAdmin },
+      { name: 'Real-Time Model Adaptive Builder', granted: isAdmin },
+      { name: 'MongoDB Data Mutations & Explorer', granted: isAdmin },
+      { name: 'Access Control & IAM Governance', granted: isAdmin },
+      { name: 'AutoML Benchmarks & Metrics', granted: isAdmin },
+      { name: 'Hardware Telemetry & Node Monitors', granted: isAdmin }
+    ];
+
+    permsEl.innerHTML = permissions
+      .map(p => `
+        <div class="profile-perm-chip ${p.granted ? 'granted' : 'restricted'}">
+          <span>${p.granted ? '✅' : '🔒'} ${p.name}</span>
+          <span style="font-size:0.65rem; opacity:0.85;">${p.granted ? 'UNLOCKED' : 'ADMIN ONLY'}</span>
+        </div>
+      `)
+      .join('');
+  }
+
+  playAudioFx('popup');
+  modal.style.display = 'flex';
+}
+
+function closeUserProfileModal() {
+  const modal = document.getElementById('user-profile-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+function handleUserPillClick() {
+  if (!window.currentAuthUser) {
+    openAuthPortal('login');
+    return;
+  }
+  openUserProfileModal();
+}
+
+function handleLogout() {
+  playAudioFx('toggle');
+  window.activeAuthToken = '';
+  window.currentAuthUser = null;
+  localStorage.removeItem('veritas_auth_token');
+  localStorage.removeItem('veritas_auth_user');
+
+  // Immediately hide Admin sections & reset topbar
+  applyUserRoleUI(null);
+
+  // Close modals
+  closeUserProfileModal();
+  closeSettingsModal();
+  closeRbacDeniedModal();
+
+  // Reset to default lab view
+  switchTab('lab');
+
+  showToast('🚪 Signed out safely. Session invalidated.', 'info', 2500);
+  openAuthPortal('login');
+}
+
+async function initAuthSession() {
+  const savedToken = localStorage.getItem('veritas_auth_token');
+  const savedUserStr = localStorage.getItem('veritas_auth_user');
+
+  if (savedToken) {
+    window.activeAuthToken = savedToken;
+    try {
+      const res = await apiFetch('/api/auth/me');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.user) {
+          localStorage.setItem('veritas_auth_user', JSON.stringify(data.user));
+          applyUserRoleUI(data.user);
+          return;
+        }
+      }
+    } catch (err) {
+      if (savedUserStr) {
+        try {
+          applyUserRoleUI(JSON.parse(savedUserStr));
+          return;
+        } catch (e) {}
+      }
+    }
+  }
+
+  // Default to guest state with admin sections hidden
+  applyUserRoleUI(null);
+  openAuthPortal('login');
+}
+
+function openAuthPortal(mode = 'login') {
+  const overlay = document.getElementById('auth-portal-overlay');
+  if (overlay) overlay.style.display = 'flex';
+  const closeBtn = document.getElementById('auth-close-btn');
+  if (closeBtn) {
+    closeBtn.style.display = 'inline-block';
+  }
+  switchAuthMode(mode);
+}
+
+function closeAuthPortal() {
+  const overlay = document.getElementById('auth-portal-overlay');
+  if (overlay) overlay.style.display = 'none';
+}
+
+function switchAuthMode(mode) {
+  ['login', 'register', 'otp', 'reset'].forEach(m => {
+    const tab = document.getElementById(`authtab-${m}`);
+    const panel = document.getElementById(`auth-panel-${m}`);
+    if (tab) tab.classList.toggle('active', m === mode);
+    if (panel) panel.style.display = m === mode ? 'block' : 'none';
+  });
+  const otpTab = document.getElementById('authtab-otp');
+  if (otpTab && mode === 'otp') {
+    otpTab.style.display = 'inline-flex';
+  }
+
+  if (mode === 'reset') {
+    const resetInput = document.getElementById('reset-email-input');
+    const loginEmail = document.getElementById('login-email-input')?.value?.trim();
+    const regEmail = document.getElementById('reg-email-input')?.value?.trim();
+    if (resetInput && !resetInput.value) {
+      resetInput.value = loginEmail || regEmail || pendingOtpEmail || '';
+    }
+  }
+
+  if (mode === 'otp') {
+    if (!pendingOtpEmail) {
+      pendingOtpEmail = localStorage.getItem('veritas_pending_otp_email') || '';
+    }
+    const emailLbl = document.getElementById('otp-target-email-lbl');
+    if (emailLbl && pendingOtpEmail) {
+      emailLbl.textContent = pendingOtpEmail;
+    }
+  }
+
+  updateAuthStepper(mode === 'otp' ? 2 : 1);
+}
+
+async function quickDemoLogin(roleType) {
+  const email = roleType === 'admin' ? 'admin@veritas.ai' : 'analyst@veritas.ai';
+  const password = roleType === 'admin' ? 'Admin@123' : 'User@123';
+  const emailInput = document.getElementById('login-email-input');
+  const passInput = document.getElementById('login-password-input');
+  if (emailInput) emailInput.value = email;
+  if (passInput) passInput.value = password;
+  await executeLoginRequest(email, password);
+}
+
+async function handleLoginSubmit(event) {
+  if (event) event.preventDefault();
+  const email = document.getElementById('login-email-input')?.value?.trim() || '';
+  const password = document.getElementById('login-password-input')?.value || '';
+  await executeLoginRequest(email, password);
+}
+
+async function executeLoginRequest(email, password) {
+  const statusEl = document.getElementById('login-status-msg');
+  if (statusEl) statusEl.innerHTML = '<span class="spinner"></span> Authenticating credentials & checking RBAC clearance...';
+
+  const formData = new FormData();
+  formData.append('email', email);
+  formData.append('password', password);
+
+  try {
+    const res = await apiFetch('/api/auth/login', { method: 'POST', body: formData });
+    const data = await res.json();
+
+    if (res.status === 403 && data.requires_otp) {
+      if (statusEl) statusEl.innerHTML = '';
+      prepareOtpVerificationScreen(email, 'email_verification', data.otp_dispatch);
+      showToast('📧 Account unverified — 6-digit OTP sent to your email!', 'warn', 3000);
+      return;
+    }
+
+    if (!res.ok || data.status === 'error') {
+      if (statusEl) statusEl.innerHTML = `<span class="text-danger">❌ ${data.message || 'Authentication failed.'}</span>`;
+      return;
+    }
+
+    completeAuthenticatedSession(data.user, data.token, data.message);
+    if (statusEl) statusEl.innerHTML = '';
+  } catch (err) {
+    if (statusEl) statusEl.innerHTML = `<span class="text-danger">❌ Login error: ${err.message}</span>`;
+  }
+}
+
+function completeAuthenticatedSession(user, token, welcomeMsg) {
+  window.activeAuthToken = token;
+  window.currentAuthUser = user;
+  localStorage.setItem('veritas_auth_token', token);
+  localStorage.setItem('veritas_auth_user', JSON.stringify(user));
+
+  updateAuthStepper(3);
+  applyUserRoleUI(user);
+  closeAuthPortal();
+  playAudioFx('toggle');
+  const roleTag = user.role === 'admin' ? '👑 ADMIN Clearance (Full Datasets & Streams)' : '👤 USER Clearance (Standard)';
+  showToast(`✅ ${welcomeMsg || 'Signed in'} [${roleTag}]`, 'success', 3200);
+
+  if (window.currentActiveTab === 'access-control' && user.role === 'admin') {
+    loadAccessControlData();
+  }
+}
+
+async function handleRegisterSubmit(event) {
+  if (event) event.preventDefault();
+  const name = document.getElementById('reg-name-input')?.value?.trim() || '';
+  const dept = document.getElementById('reg-dept-input')?.value?.trim() || 'Forensic Verification Desk';
+  const email = document.getElementById('reg-email-input')?.value?.trim() || '';
+  const password = document.getElementById('reg-password-input')?.value || '';
+  const statusEl = document.getElementById('reg-status-msg');
+
+  if (statusEl) statusEl.innerHTML = '<span class="spinner"></span> Dispatching 6-digit verification OTP...';
+
+  const formData = new FormData();
+  formData.append('name', name);
+  formData.append('department', dept);
+  formData.append('email', email);
+  formData.append('password', password);
+
+  try {
+    const res = await apiFetch('/api/auth/register', { method: 'POST', body: formData });
+    const data = await res.json();
+
+    if (!res.ok || data.status === 'error') {
+      if (statusEl) statusEl.innerHTML = `<span class="text-danger">❌ ${data.message || 'Registration failed.'}</span>`;
+      return;
+    }
+
+    if (statusEl) statusEl.innerHTML = '';
+    prepareOtpVerificationScreen(email, 'email_verification', data.otp_dispatch);
+    playAudioFx('popup');
+    showToast(`📬 Verification OTP dispatched to ${email}!`, 'success', 3200);
+  } catch (err) {
+    if (statusEl) statusEl.innerHTML = `<span class="text-danger">❌ Registration error: ${err.message}</span>`;
+  }
+}
+
+function prepareOtpVerificationScreen(email, purpose, otpDispatch) {
+  pendingOtpEmail = email;
+  pendingOtpPurpose = purpose || 'email_verification';
+  try {
+    localStorage.setItem('veritas_pending_otp_email', email);
+    localStorage.setItem('veritas_pending_otp_purpose', pendingOtpPurpose);
+  } catch (e) {}
+
+  const emailLbl = document.getElementById('otp-target-email-lbl');
+  if (emailLbl) emailLbl.textContent = email;
+
+  // Clear OTP boxes
+  const boxes = document.querySelectorAll('#otp-boxes-container .otp-digit-box');
+  boxes.forEach(b => { b.value = ''; });
+  if (boxes[0]) setTimeout(() => boxes[0].focus(), 80);
+
+  startOtpExpiryTimer((otpDispatch && otpDispatch.expires_in_seconds) || 600);
+  switchAuthMode('otp');
+}
+
+function startOtpExpiryTimer(seconds) {
+  clearInterval(otpCountdownInterval);
+  otpRemainingSeconds = seconds;
+  const timerEl = document.getElementById('otp-expiry-timer');
+  const updateDisplay = () => {
+    if (!timerEl) return;
+    const mins = Math.floor(otpRemainingSeconds / 60);
+    const secs = otpRemainingSeconds % 60;
+    timerEl.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+  };
+  updateDisplay();
+  otpCountdownInterval = setInterval(() => {
+    otpRemainingSeconds = Math.max(0, otpRemainingSeconds - 1);
+    updateDisplay();
+    if (otpRemainingSeconds <= 0) {
+      clearInterval(otpCountdownInterval);
+    }
+  }, 1000);
+}
+
+function onOtpDigitInput(event, idx) {
+  const input = event.target;
+  const val = input.value.replace(/\D/g, '');
+  input.value = val ? val[val.length - 1] : '';
+  if (input.value && idx < 5) {
+    const boxes = document.querySelectorAll('#otp-boxes-container .otp-digit-box');
+    if (boxes[idx + 1]) boxes[idx + 1].focus();
+  }
+}
+
+function onOtpDigitKeydown(event, idx) {
+  const boxes = document.querySelectorAll('#otp-boxes-container .otp-digit-box');
+  if (event.key === 'Backspace' && !event.target.value && idx > 0) {
+    if (boxes[idx - 1]) {
+      boxes[idx - 1].focus();
+      boxes[idx - 1].value = '';
+    }
+  } else if (event.key === 'Enter') {
+    event.preventDefault();
+    handleVerifyOtpSubmit();
+  }
+}
+
+function onOtpPaste(event) {
+  event.preventDefault();
+  const pasted = (event.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '').slice(0, 6);
+  if (!pasted) return;
+  const boxes = document.querySelectorAll('#otp-boxes-container .otp-digit-box');
+  pasted.split('').forEach((ch, i) => {
+    if (boxes[i]) boxes[i].value = ch;
+  });
+  if (boxes[Math.min(5, pasted.length - 1)]) {
+    boxes[Math.min(5, pasted.length - 1)].focus();
+  }
+}
+
+function autoFillSandboxOtp() {
+  // Deliberately disabled for production security
+}
+
+async function handleVerifyOtpSubmit() {
+  const boxes = document.querySelectorAll('#otp-boxes-container .otp-digit-box');
+  const otpCode = Array.from(boxes).map(b => b.value.trim()).join('');
+  const statusEl = document.getElementById('otp-status-msg');
+
+  if (otpCode.length !== 6) {
+    if (statusEl) statusEl.innerHTML = '<span class="text-danger">⚠️ Please enter all 6 digits of the OTP code.</span>';
+    return;
+  }
+
+  if (statusEl) statusEl.innerHTML = '<span class="spinner"></span> Verifying cryptographic OTP signature...';
+
+  const formData = new FormData();
+  formData.append('email', pendingOtpEmail);
+  formData.append('otp', otpCode);
+  formData.append('purpose', pendingOtpPurpose);
+
+  try {
+    const res = await apiFetch('/api/auth/verify-otp', { method: 'POST', body: formData });
+    const data = await res.json();
+
+    if (!res.ok || data.status === 'error') {
+      if (statusEl) statusEl.innerHTML = `<span class="text-danger">❌ ${data.message || 'Invalid OTP.'}</span>`;
+      return;
+    }
+
+    clearInterval(otpCountdownInterval);
+    if (statusEl) statusEl.innerHTML = `<span class="text-success">✅ ${data.message}</span>`;
+    completeAuthenticatedSession(data.user, data.token, 'Email verified via Secure OTP!');
+  } catch (err) {
+    if (statusEl) statusEl.innerHTML = `<span class="text-danger">❌ Verification failed: ${err.message}</span>`;
+  }
+}
+
+async function handleResendOtp() {
+  if (!pendingOtpEmail) return;
+  const statusEl = document.getElementById('otp-status-msg');
+  if (statusEl) statusEl.innerHTML = '<span class="spinner"></span> Requesting fresh verification OTP...';
+
+  const formData = new FormData();
+  formData.append('email', pendingOtpEmail);
+  formData.append('purpose', pendingOtpPurpose);
+
+  try {
+    const res = await apiFetch('/api/auth/resend-otp', { method: 'POST', body: formData });
+    const data = await res.json();
+    if (!res.ok || data.status === 'cooldown') {
+      if (statusEl) statusEl.innerHTML = `<span class="text-danger">⏳ ${data.message}</span>`;
+      return;
+    }
+    prepareOtpVerificationScreen(pendingOtpEmail, pendingOtpPurpose, data);
+    if (statusEl) statusEl.innerHTML = `<span class="text-success">✅ ${data.message}</span>`;
+  } catch (err) {
+    if (statusEl) statusEl.innerHTML = `<span class="text-danger">❌ Resend failed: ${err.message}</span>`;
+  }
+}
+
+async function sendPasswordResetOtp() {
+  const emailInput = document.getElementById('reset-email-input');
+  const email = emailInput?.value?.trim() || '';
+  const statusEl = document.getElementById('reset-status-msg');
+  const btnEl = document.getElementById('btn-send-reset-otp');
+
+  if (!email || !email.includes('@')) {
+    if (statusEl) statusEl.innerHTML = '<span class="text-danger">⚠️ Please enter a valid registered email address.</span>';
+    if (emailInput) emailInput.focus();
+    return;
+  }
+
+  if (statusEl) statusEl.innerHTML = `<span class="spinner"></span> Dispatching recovery OTP to <strong>${email}</strong> via secure SMTP...`;
+  if (btnEl) {
+    btnEl.disabled = true;
+    btnEl.innerHTML = '<span class="spinner"></span> Sending...';
+  }
+
+  const formData = new FormData();
+  formData.append('email', email);
+
+  try {
+    const res = await apiFetch('/api/auth/forgot-password', { method: 'POST', body: formData });
+    const data = await res.json();
+    if (btnEl) {
+      btnEl.disabled = false;
+      btnEl.innerHTML = '🔄 Resend OTP';
+    }
+    if (!res.ok || data.status === 'error') {
+      if (statusEl) statusEl.innerHTML = `<span class="text-danger">❌ ${data.message}</span>`;
+      return;
+    }
+    if (statusEl) {
+      statusEl.innerHTML = `<span class="text-success">✅ ${data.message || `Password recovery OTP sent to ${email}!`}<br><small style="opacity:0.85;">Check your inbox &amp; spam folder, then enter the 6-digit code and your new password below.</small></span>`;
+    }
+    playAudioFx('popup');
+    showToast(`📬 Password reset OTP dispatched to ${email}!`, 'success', 3500);
+    const otpInput = document.getElementById('reset-otp-input');
+    if (otpInput) setTimeout(() => otpInput.focus(), 100);
+  } catch (err) {
+    if (btnEl) {
+      btnEl.disabled = false;
+      btnEl.innerHTML = '📧 Send OTP';
+    }
+    if (statusEl) statusEl.innerHTML = `<span class="text-danger">❌ Dispatch error: ${err.message}</span>`;
+  }
+}
+
+async function handleResetPasswordSubmit() {
+  const email = document.getElementById('reset-email-input')?.value?.trim() || '';
+  const otp = document.getElementById('reset-otp-input')?.value?.trim() || '';
+  const newPass = document.getElementById('reset-newpass-input')?.value || '';
+  const statusEl = document.getElementById('reset-status-msg');
+  const submitBtn = document.getElementById('btn-submit-reset-password');
+
+  if (!email || !email.includes('@')) {
+    if (statusEl) statusEl.innerHTML = '<span class="text-danger">⚠️ Please enter your registered email address.</span>';
+    return;
+  }
+  if (!otp || otp.length !== 6) {
+    if (statusEl) statusEl.innerHTML = '<span class="text-danger">⚠️ Please enter the 6-digit OTP code received in your email.</span>';
+    return;
+  }
+  if (!newPass || newPass.length < 6) {
+    if (statusEl) statusEl.innerHTML = '<span class="text-danger">⚠️ New password must be at least 6 characters long.</span>';
+    return;
+  }
+
+  if (statusEl) statusEl.innerHTML = '<span class="spinner"></span> Verifying OTP signature and updating password in MongoDB...';
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span><span class="spinner"></span> Updating Security Credentials...</span>';
+  }
+
+  const formData = new FormData();
+  formData.append('email', email);
+  formData.append('otp', otp);
+  formData.append('new_password', newPass);
+
+  try {
+    const res = await apiFetch('/api/auth/reset-password', { method: 'POST', body: formData });
+    const data = await res.json();
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '<span>🔐 Verify OTP &amp; Save New Password</span>';
+    }
+    if (!res.ok || data.status === 'error') {
+      if (statusEl) statusEl.innerHTML = `<span class="text-danger">❌ ${data.message}</span>`;
+      return;
+    }
+    if (statusEl) statusEl.innerHTML = `<span class="text-success">✅ Password updated successfully! Authenticating workspace...</span>`;
+    playAudioFx('toggle');
+    completeAuthenticatedSession(data.user, data.token, data.message || 'Password updated and account secured!');
+  } catch (err) {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '<span>🔐 Verify OTP &amp; Save New Password</span>';
+    }
+    if (statusEl) statusEl.innerHTML = `<span class="text-danger">❌ Reset error: ${err.message}</span>`;
+  }
+}
+
+function openEmailPreviewModal(customHtml, customMeta) {
+  const modal = document.getElementById('email-preview-modal');
+  const body = document.getElementById('nm-preview-body');
+  const meta = document.getElementById('nm-preview-meta');
+  if (!modal || !body) return;
+  body.innerHTML = customHtml || latestEmailPreviewHtml || '<div class="p-3 text-dim">No email preview available.</div>';
+  if (meta && customMeta) meta.textContent = customMeta;
+  modal.style.display = 'flex';
+}
+
+function closeEmailPreviewModal() {
+  const modal = document.getElementById('email-preview-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+function openRbacDeniedModal(attemptedTabId) {
+  const modal = document.getElementById('rbac-denied-modal');
+  const titleEl = document.getElementById('rbac-denied-feature-title');
+  const emailEl = document.getElementById('rbac-denied-user-email');
+  if (titleEl) {
+    titleEl.textContent = `Restricted Module: ${BREADCRUMB_MAP[attemptedTabId] || 'Datasets & Streams'}`;
+  }
+  if (emailEl && window.currentAuthUser) {
+    emailEl.textContent = `${window.currentAuthUser.name} (${window.currentAuthUser.email})`;
+  }
+  if (modal) modal.style.display = 'flex';
+}
+
+function closeRbacDeniedModal() {
+  const modal = document.getElementById('rbac-denied-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+// ==========================================
+// Admin Access Control & IAM Governance Hub (Tab 13)
+// ==========================================
+
+function setIamRoleFilter(role) {
+  playAudioFx('switch');
+  currentIamRoleFilter = role;
+  ['all', 'admin', 'user', 'unverified'].forEach(r => {
+    document.getElementById(`iamtab-${r}`)?.classList.toggle('active', r === role);
+  });
+  loadAccessControlData();
+}
+
+function onIamSearchChange() {
+  clearTimeout(iamSearchDebounce);
+  iamSearchDebounce = setTimeout(loadAccessControlData, 250);
+}
+
+async function loadAccessControlData() {
+  const query = document.getElementById('iam-search-input')?.value?.trim() || '';
+  const tbody = document.getElementById('iam-users-tbody');
+
+  try {
+    const res = await apiFetch(`/api/auth/users?role=${encodeURIComponent(currentIamRoleFilter)}&query=${encodeURIComponent(query)}`);
+    if (res.status === 401 || res.status === 403) {
+      if (tbody) tbody.innerHTML = `<tr><td colspan="6" class="text-danger text-center py-4">🔒 Administrator clearance required to view IAM Governance Directory.</td></tr>`;
+      return;
+    }
+    if (!res.ok) throw new Error(res.statusText);
+    const data = await res.json();
+
+    // Update KPI Stats
+    const st = data.stats || {};
+    const elTotal = document.getElementById('iam-stat-total');
+    const elAdmins = document.getElementById('iam-stat-admins');
+    const elUsers = document.getElementById('iam-stat-users');
+    const elVer = document.getElementById('iam-stat-verified');
+    const elSmtp = document.getElementById('iam-smtp-mode');
+
+    if (elTotal) elTotal.textContent = st.total || 0;
+    if (elAdmins) elAdmins.textContent = st.admins || 0;
+    if (elUsers) elUsers.textContent = st.standard_users || 0;
+    if (elVer) elVer.textContent = st.verified || 0;
+    if (elSmtp && data.smtp_status) {
+      elSmtp.textContent = data.smtp_status.configured
+        ? `🟢 Live SMTP (${data.smtp_status.host})`
+        : '⚡ Local Sandbox Active';
+    }
+
+    renderIamUsersTable(data.users || []);
+    renderIamAuditTable(data.audit_logs || []);
+    renderIamOutboxList(data.outbox || []);
+  } catch (err) {
+    console.warn('IAM load error:', err);
+  }
+}
+
+function renderIamUsersTable(users) {
+  const tbody = document.getElementById('iam-users-tbody');
+  if (!tbody) return;
+
+  if (!users.length) {
+    tbody.innerHTML = `<tr><td colspan="6" class="text-dim text-center py-4">No user accounts match the current filter.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = '';
+  users.forEach(u => {
+    const isAdmin = u.role === 'admin';
+    const isRootAdmin = u.email.toLowerCase() === 'admin@veritas.ai';
+    const tr = document.createElement('tr');
+
+    tr.innerHTML = `
+      <td>
+        <div style="font-weight: 700; color: var(--text-main);">${u.name}</div>
+        <div class="font-mono text-cyan" style="font-size: 0.76rem;">${u.email}</div>
+        <div class="text-dim" style="font-size: 0.68rem;">Last Login: ${u.last_login || 'Never'}</div>
+      </td>
+      <td style="font-size: 0.8rem; color: var(--text-muted);">${u.department || 'Forensic Unit'}</td>
+      <td>
+        ${u.is_verified
+          ? `<span class="clay-tag-success" style="font-size: 0.7rem;">✅ OTP Verified</span>`
+          : `<span class="clay-tag-accent" style="font-size: 0.7rem; background: rgba(245,158,11,0.2); color: #fcd34d;">⏳ Pending OTP</span>
+             <button type="button" class="clay-btn-sm" style="padding: 2px 6px; font-size: 0.65rem; margin-left: 4px;" onclick="adminManualVerifyUser('${u.id}')">Verify</button>`
+        }
+      </td>
+      <td>
+        <span class="user-role-badge ${isAdmin ? 'role-admin' : 'role-user'}">
+          ${isAdmin ? '👑 ADMIN' : '👤 USER'}
+        </span>
+        ${u.promoted_by ? `<div class="text-dim" style="font-size: 0.65rem; margin-top: 3px;">By: ${u.promoted_by}</div>` : ''}
+      </td>
+      <td>
+        ${isAdmin
+          ? `<span class="text-success font-mono" style="font-size: 0.76rem; font-weight: 700;">🟢 Full Access (Datasets &amp; Streams)</span>`
+          : `<span class="text-dim font-mono" style="font-size: 0.76rem;">🔒 Restricted (Dashboard Only)</span>`
+        }
+      </td>
+      <td>
+        <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+          ${isAdmin
+            ? `<button type="button" class="clay-btn-danger-sm" style="padding: 4px 10px; font-size: 0.74rem;"
+                 ${isRootAdmin ? 'disabled title="Primary Root Admin cannot be demoted"' : ''}
+                 onclick="changeUserClearanceRole('${u.id}', 'user', '${u.name.replace(/'/g, "\\'")}')">
+                 ⬇️ Demote to User
+               </button>`
+            : `<button type="button" class="clay-btn-primary" style="padding: 4px 10px; font-size: 0.74rem;"
+                 onclick="changeUserClearanceRole('${u.id}', 'admin', '${u.name.replace(/'/g, "\\'")}')">
+                 ⬆️ Grant Admin Access
+               </button>`
+          }
+          ${!isRootAdmin
+            ? `<button type="button" class="clay-btn-sm" style="padding: 4px 8px; font-size: 0.72rem;" title="Remove Account"
+                 onclick="adminRemoveUserAccount('${u.id}', '${u.email}')">🗑️</button>`
+            : ''
+          }
+        </div>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+async function changeUserClearanceRole(targetUserId, newRole, targetName) {
+  const actionLabel = newRole === 'admin'
+    ? `Promote "${targetName}" to ADMIN (granting full access to Datasets & Streams and IAM)`
+    : `Demote "${targetName}" to standard USER (revoking access to Datasets & Streams)`;
+
+  const formData = new FormData();
+  formData.append('target_user_id', targetUserId);
+  formData.append('new_role', newRole);
+
+  try {
+    const res = await apiFetch('/api/auth/update-role', { method: 'POST', body: formData });
+    const data = await res.json();
+    if (!res.ok || data.status === 'error') {
+      showToast(`⚠️ ${data.message || 'Could not update role'}`, 'warn', 3000);
+      return;
+    }
+
+    playAudioFx('toggle');
+    showToast(`✅ ${data.message}`, 'success', 3000);
+
+    // If admin modified their own role, sync immediately
+    if (window.currentAuthUser && data.user && String(window.currentAuthUser.id) === String(data.user.id)) {
+      localStorage.setItem('veritas_auth_user', JSON.stringify(data.user));
+      applyUserRoleUI(data.user);
+    }
+
+    loadAccessControlData();
+  } catch (err) {
+    showToast(`❌ Role update failed: ${err.message}`, 'warn', 3000);
+  }
+}
+
+async function adminManualVerifyUser(targetUserId) {
+  const formData = new FormData();
+  formData.append('target_user_id', targetUserId);
+  try {
+    const res = await apiFetch('/api/auth/admin-verify-user', { method: 'POST', body: formData });
+    const data = await res.json();
+    if (res.ok) {
+      showToast(`✅ ${data.message}`, 'success', 2500);
+      loadAccessControlData();
+    }
+  } catch (err) {
+    showToast(`❌ Error: ${err.message}`, 'warn', 2500);
+  }
+}
+
+async function adminRemoveUserAccount(targetUserId, email) {
+  if (!confirm(`Are you sure you want to remove account "${email}"?`)) return;
+  const formData = new FormData();
+  formData.append('target_user_id', targetUserId);
+  try {
+    const res = await apiFetch('/api/auth/delete-user', { method: 'POST', body: formData });
+    const data = await res.json();
+    if (res.ok && data.status === 'success') {
+      showToast(`🗑️ ${data.message}`, 'info', 2500);
+      loadAccessControlData();
+    } else {
+      showToast(`⚠️ ${data.message || 'Delete failed'}`, 'warn', 2500);
+    }
+  } catch (err) {
+    showToast(`❌ Error: ${err.message}`, 'warn', 2500);
+  }
+}
+
+function renderIamAuditTable(logs) {
+  const tbody = document.getElementById('iam-audit-tbody');
+  if (!tbody) return;
+  if (!logs.length) {
+    tbody.innerHTML = `<tr><td colspan="4" class="text-dim text-center py-4">No security audit events recorded yet.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = '';
+  logs.slice(0, 20).forEach(log => {
+    const tr = document.createElement('tr');
+    const isPromo = log.action.includes('PROMOTED');
+    const isDemo = log.action.includes('DEMOTED');
+    const badgeColor = isPromo ? 'text-success' : (isDemo ? 'text-danger' : 'text-cyan');
+    tr.innerHTML = `
+      <td class="font-mono text-dim" style="font-size: 0.7rem; white-space: nowrap;">${(log.timestamp || '').split(' ')[1] || log.timestamp}</td>
+      <td class="font-mono" style="font-size: 0.72rem;">${log.actor_email}</td>
+      <td class="font-mono ${badgeColor}" style="font-size: 0.7rem; font-weight: 700;">${log.action}</td>
+      <td style="font-size: 0.75rem; color: var(--text-muted);">${log.details}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+window.outboxCacheById = {};
+
+function renderIamOutboxList(outbox) {
+  const container = document.getElementById('iam-outbox-list');
+  if (!container) return;
+  if (!outbox.length) {
+    container.innerHTML = `<div class="text-dim text-center py-4" style="font-size: 0.82rem;">No OTP emails dispatched in current session yet. Click "Send Test OTP" or register a new user to inspect email output.</div>`;
+    return;
+  }
+  container.innerHTML = '';
+  outbox.forEach(mail => {
+    window.outboxCacheById[mail.id] = mail;
+    const item = document.createElement('div');
+    item.className = 'citation-card';
+    item.style.marginBottom = '8px';
+    item.innerHTML = `
+      <div class="flex-between">
+        <span class="font-mono" style="font-size: 0.78rem; color: var(--cyan); font-weight: 700;">To: ${mail.to}</span>
+        <span class="badge-source">OTP: ${mail.otp_masked || '******'}</span>
+      </div>
+      <div class="text-dim font-mono" style="font-size: 0.7rem; margin-top: 2px;">${mail.delivery_mode} &bull; ${mail.timestamp}</div>
+      <div class="flex-between mt-2">
+        <span class="text-dim font-mono" style="font-size: 0.68rem;">${mail.message_id || ''}</span>
+        <button type="button" class="clay-btn-sm" style="padding: 2px 8px; font-size: 0.7rem;"
+          onclick="previewOutboxMailById('${mail.id}')">👁️ Inspect HTML Email</button>
+      </div>
+    `;
+    container.appendChild(item);
+  });
+}
+
+function previewOutboxMailById(mailId) {
+  const mail = window.outboxCacheById[mailId];
+  if (!mail) return;
+  openEmailPreviewModal(mail.html_preview, `To: ${mail.to} | OTP: ${mail.otp_masked || '******'} | ${mail.delivery_mode}`);
+}
+
+async function sendQuickTestOtpEmail() {
+  const targetEmail = (window.currentAuthUser && window.currentAuthUser.email) || 'admin@veritas.ai';
+  const formData = new FormData();
+  formData.append('email', targetEmail);
+  formData.append('purpose', 'email_verification');
+  try {
+    const res = await apiFetch('/api/auth/resend-otp', { method: 'POST', body: formData });
+    const data = await res.json();
+    if (data.email_dispatch && data.email_dispatch.html_preview) {
+      latestEmailPreviewHtml = data.email_dispatch.html_preview;
+    }
+    showToast(`📧 Dispatched test OTP email to ${targetEmail}!`, 'success', 2500);
+    loadAccessControlData();
+  } catch (err) {
+    showToast(`❌ Failed to dispatch test OTP: ${err.message}`, 'warn', 2500);
+  }
+}
+
+async function saveAndTestSmtpSettings() {
+  const host = document.getElementById('smtp-host-input')?.value?.trim() || 'smtp.gmail.com';
+  const port = document.getElementById('smtp-port-input')?.value || '587';
+  const user = document.getElementById('smtp-user-input')?.value?.trim() || '';
+  const pass = document.getElementById('smtp-pass-input')?.value || '';
+  const testEmail = document.getElementById('smtp-test-email-input')?.value?.trim() || '';
+  const statusEl = document.getElementById('smtp-verify-status');
+
+  if (statusEl) statusEl.innerHTML = '<span class="spinner"></span> Updating SMTP configuration...';
+
+  const formData = new FormData();
+  formData.append('host', host);
+  formData.append('port', port);
+  formData.append('user', user);
+  formData.append('password', pass);
+  if (testEmail) formData.append('test_recipient', testEmail);
+
+  try {
+    const res = await apiFetch('/api/settings/save-smtp', { method: 'POST', body: formData });
+    const data = await res.json();
+    if (!res.ok || data.status === 'error') {
+      if (statusEl) statusEl.innerHTML = `<span class="text-danger">❌ ${data.message || 'Failed to save SMTP settings.'}</span>`;
+      return;
+    }
+    if (statusEl) statusEl.innerHTML = `<span class="text-success">✅ ${data.message}</span>`;
+    if (window.currentActiveTab === 'access-control') loadAccessControlData();
+  } catch (err) {
+    if (statusEl) statusEl.innerHTML = `<span class="text-danger">❌ Error: ${err.message}</span>`;
+  }
+}
+
+// Initialize Authentication Session on DOMContentLoaded
+document.addEventListener('DOMContentLoaded', () => {
+  initAuthSession();
+});
+
+window.openAuthPortal = openAuthPortal;
+window.closeAuthPortal = closeAuthPortal;
+window.switchAuthMode = switchAuthMode;
+window.updateAuthStepper = updateAuthStepper;
+window.toggleAuthPassword = toggleAuthPassword;
+window.updatePasswordStrengthMeter = updatePasswordStrengthMeter;
+window.fillLoginInputs = fillLoginInputs;
+window.openUserProfileModal = openUserProfileModal;
+window.closeUserProfileModal = closeUserProfileModal;
+window.handleUserPillClick = handleUserPillClick;
+window.handleLogout = handleLogout;
+window.quickDemoLogin = quickDemoLogin;
+window.handleLoginSubmit = handleLoginSubmit;
+window.handleRegisterSubmit = handleRegisterSubmit;
+window.onOtpDigitInput = onOtpDigitInput;
+window.onOtpDigitKeydown = onOtpDigitKeydown;
+window.onOtpPaste = onOtpPaste;
+window.autoFillSandboxOtp = autoFillSandboxOtp;
+window.handleVerifyOtpSubmit = handleVerifyOtpSubmit;
+window.handleResendOtp = handleResendOtp;
+window.sendPasswordResetOtp = sendPasswordResetOtp;
+window.handleResetPasswordSubmit = handleResetPasswordSubmit;
+window.openEmailPreviewModal = openEmailPreviewModal;
+window.closeEmailPreviewModal = closeEmailPreviewModal;
+window.openRbacDeniedModal = openRbacDeniedModal;
+window.closeRbacDeniedModal = closeRbacDeniedModal;
+window.setIamRoleFilter = setIamRoleFilter;
+window.onIamSearchChange = onIamSearchChange;
+window.loadAccessControlData = loadAccessControlData;
+window.changeUserClearanceRole = changeUserClearanceRole;
+window.adminManualVerifyUser = adminManualVerifyUser;
+window.adminRemoveUserAccount = adminRemoveUserAccount;
+window.previewOutboxMailById = previewOutboxMailById;
+window.sendQuickTestOtpEmail = sendQuickTestOtpEmail;
+window.saveAndTestSmtpSettings = saveAndTestSmtpSettings;
 
 window.playAudioFx = playAudioFx;
 window.showToast = showToast;
